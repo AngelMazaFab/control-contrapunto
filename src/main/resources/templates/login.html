@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Control Contrapunto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            /* Ajustado para contener mejor los inputs */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            color: #000000;
+        }
+
+        .music-icon {
+            font-size: 55px;
+            /* Tamaño controlado fácilmente como si fuera texto */
+            line-height: 1;
+        }
+
+        .logo-text {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.1;
+            text-align: left;
+            margin: 0;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border: 1px solid #FD7E14;
+            /* Borde naranja primario */
+            border-radius: 6px;
+            font-size: 16px;
+            color: #495057;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .form-input::placeholder {
+            color: #6C757D;
+        }
+
+        .form-input:focus {
+            box-shadow: 0 0 5px rgba(253, 126, 20, 0.5);
+        }
+
+        .btn-login {
+            background-color: #FD7E14;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            width: auto;
+            /* Para que el botón sea pequeño y centrado como en tu diseño */
+        }
+
+        .btn-login:hover {
+            background-color: #e06c00;
+        }
+
+        .error-msg {
+            color: #DC3545;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .form-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+
+        <div class="logo-wrapper">
+            <span class="music-icon">&#119070;</span>
+            <h1 class="logo-text">Control<br>Contrapunto</h1>
+            <span class="music-icon">&#9835;</span>
+        </div>
+
+        <div th:if="${param.error}" class="error-msg">Usuario o contraseña incorrectos.</div>
+
+        <form th:action="@{/login}" method="post" class="form-wrapper">
+            <input type="text" name="usuario" class="form-input" placeholder="Usuario" required>
+            <input type="password" name="contrasena" class="form-input" placeholder="Contraseña" required>
+
+            <button type="submit" class="btn-login">Iniciar Sesión</button>
+        </form>
+    </div>
+</body>
+
+</html>
