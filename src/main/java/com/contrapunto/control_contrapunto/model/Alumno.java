@@ -3,6 +3,7 @@ package com.contrapunto.control_contrapunto.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -17,6 +18,12 @@ public class Alumno {
 
     @Column(name = "nombre_alumno", nullable = false)
     private String nombreAlumno;
+
+    @Column(name = "ultimo_pago")
+    private LocalDate ultimoPago;
+
+    @Column(name = "proximo_pago")
+    private LocalDate proximoPago;
 
     @OneToMany(mappedBy = "alumno", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TelefonoAlumno> telefonos;

@@ -127,7 +127,7 @@
             border-bottom: none;
         }
 
-        /* Badges de ID */
+        /* Badge de ID */
         .badge-id {
             font-size: 12px;
             font-weight: 600;
@@ -135,6 +135,47 @@
             border-radius: 50px;
             background: #e9ecef;
             color: #495057;
+        }
+
+        /* Badge de fecha de pago */
+        .badge-date {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .badge-date-paid {
+            background: rgba(25,135,84,0.1);
+            color: #198754;
+        }
+        .badge-date-pending {
+            background: rgba(253,126,20,0.1);
+            color: #e8651a;
+        }
+        .badge-date-none {
+            background: #f1f3f5;
+            color: #adb5bd;
+        }
+
+        /* Botón clip de comprobantes */
+        .btn-clip {
+            background: transparent;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            color: #6c757d;
+            padding: 5px 10px;
+            font-size: 15px;
+            line-height: 1;
+            transition: background 0.18s, color 0.18s, border-color 0.18s;
+            cursor: pointer;
+        }
+        .btn-clip:hover {
+            background: rgba(253,126,20,0.08);
+            border-color: #FD7E14;
+            color: #FD7E14;
         }
 
         /* Empty state */
@@ -164,7 +205,7 @@
 <!-- ── Contenido principal ── -->
 <div class="main-content" style="margin-left: 260px; padding: 2rem;">
 
-    <!-- Top Bar (opcional si se alinea al padding) -->
+    <!-- Top Bar -->
     <div class="topbar mx-n4 mt-n4 mb-4">
         <div>
             <div class="topbar-title">Catálogo de Alumnos</div>
@@ -193,15 +234,15 @@
         <!-- Encabezado + botón Nuevo -->
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h2 style="font-size:24px; font-weight:600; color:#1a1a2e; margin:0;">
+                <h1 style="font-size:24px; font-weight:700; color:#1a1a2e; margin:0;">
                     Catálogo de Alumnos
-                </h2>
+                </h1>
                 <p style="font-size:13px; color:#6c757d; margin:4px 0 0;">
                     Gestiona el padrón de alumnos registrados en el sistema.
                 </p>
             </div>
             <a th:href="@{/alumnos/nuevo}"
-               class="btn btn-sm d-flex align-items-center gap-2"
+               class="btn d-flex align-items-center gap-2"
                id="btn-nuevo-alumno"
                style="background-color: #FD7E14; color: white; border: none; border-radius:8px;
                       padding:10px 18px; font-size:14px; font-weight:600;
@@ -217,8 +258,10 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Nombre del Alumno</th>
-                        <th>Contacto</th>
+                        <th>Nombre</th>
+                        <th>Último Pago</th>
+                        <th>Próximo Pago</th>
+                        <th style="text-align:center;">Comprobantes</th>
                         <th style="text-align:center;">Acciones</th>
                     </tr>
                 </thead>
@@ -226,52 +269,90 @@
                     <!-- Bucle Thymeleaf -->
                     <tr th:each="alumno : ${alumnos}" th:id="'fila-alumno-' + ${alumno.idAlumno}">
 
+                        <!-- Columna: ID -->
                         <td>
                             <span class="badge-id" th:text="${alumno.idAlumno}">1</span>
                         </td>
 
+                        <!-- Columna: Nombre -->
                         <td>
-                            <span style="font-weight:500;" th:text="${alumno.nombreAlumno}">
-                                Nombre Alumno
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width:32px; height:32px; background:rgba(253,126,20,0.1); flex-shrink:0;">
+                                    <i class="bi bi-person-fill" style="color:#FD7E14; font-size:14px;"></i>
+                                </div>
+                                <span style="font-weight:500;" th:text="${alumno.nombreAlumno}">
+                                    Nombre Alumno
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- Columna: Último Pago -->
+                        <td>
+                            <span th:if="${alumno.ultimoPago != null}"
+                                  class="badge-date badge-date-paid"
+                                  th:text="${#temporals.format(alumno.ultimoPago, 'dd/MM/yyyy')}">
+                                01/01/2025
+                            </span>
+                            <span th:unless="${alumno.ultimoPago != null}"
+                                  class="badge-date badge-date-none">
+                                <i class="bi bi-dash"></i> Sin registro
                             </span>
                         </td>
 
+                        <!-- Columna: Próximo Pago -->
                         <td>
-                            <!-- Mostrar primer correo si existe, o un texto genérico -->
-                            <span class="text-muted" style="font-size: 13px;" th:if="${alumno.correos != null and !alumno.correos.isEmpty()}" th:text="${alumno.correos[0].correo}">
-                                correo@ejemplo.com
+                            <span th:if="${alumno.proximoPago != null}"
+                                  class="badge-date badge-date-pending"
+                                  th:text="${#temporals.format(alumno.proximoPago, 'dd/MM/yyyy')}">
+                                01/02/2025
                             </span>
-                            <span class="text-muted" style="font-size: 13px;" th:unless="${alumno.correos != null and !alumno.correos.isEmpty()}">
-                                Ver detalles
+                            <span th:unless="${alumno.proximoPago != null}"
+                                  class="badge-date badge-date-none">
+                                <i class="bi bi-dash"></i> Sin registro
                             </span>
                         </td>
 
+                        <!-- Columna: Comprobantes (clip) -->
+                        <td style="text-align:center;">
+                            <button type="button"
+                                    class="btn-clip"
+                                    th:id="'btn-comprobante-' + ${alumno.idAlumno}"
+                                    title="Ver comprobantes de pago">
+                                <i class="bi bi-paperclip"></i>
+                            </button>
+                        </td>
+
+                        <!-- Columna: Acciones -->
                         <td style="text-align:center;">
                             <div class="d-flex justify-content-center gap-2">
                                 <!-- Botón Editar -->
                                 <a th:href="@{/alumnos/editar/{id}(id=${alumno.idAlumno})}"
                                    class="btn btn-sm"
                                    th:id="'btn-editar-' + ${alumno.idAlumno}"
+                                   title="Editar alumno"
                                    style="background-color:#0A58CA; color:#fff; border-radius:6px;
-                                          font-size:12px; padding:5px 12px; font-weight:500;">
-                                    <i class="bi bi-pencil-fill me-1"></i>Editar
+                                          padding:5px 10px; font-size:13px;">
+                                    <i class="bi bi-pencil-fill"></i>
                                 </a>
                                 <!-- Botón Eliminar -->
                                 <a th:href="@{/alumnos/eliminar/{id}(id=${alumno.idAlumno})}"
                                    class="btn btn-sm"
                                    th:id="'btn-eliminar-' + ${alumno.idAlumno}"
+                                   title="Eliminar alumno"
                                    style="background-color:#DC3545; color:#fff; border-radius:6px;
-                                          font-size:12px; padding:5px 12px; font-weight:500;"
+                                          padding:5px 10px; font-size:13px;"
                                    onclick="return confirm('¿Confirmas eliminar este alumno?')">
-                                    <i class="bi bi-trash-fill me-1"></i>Eliminar
+                                    <i class="bi bi-trash-fill"></i>
                                 </a>
                             </div>
                         </td>
+
                     </tr>
 
                     <!-- Estado vacío si no hay alumnos -->
                     <tr th:if="${#lists.isEmpty(alumnos)}">
-                        <td colspan="4" class="empty-state">
+                        <td colspan="6" class="empty-state">
                             <i class="bi bi-people"></i>
                             <strong style="font-size:15px; display:block; color:#6c757d;">
                                 Sin alumnos registrados
