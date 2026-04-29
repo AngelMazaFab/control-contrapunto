@@ -84,4 +84,56 @@ public class ServicioAlumno {
             }
         }
     }
+
+    public Alumno obtenerPorId(Long id) {
+        return alumnoRepository.findById(id).orElse(null);
+    }
+
+    @Transactional
+    public void actualizarAlumno(Long id, String nombre, List<String> telefonos, List<String> correos) {
+        Alumno alumno = obtenerPorId(id);
+        if (alumno != null) {
+            alumno.setNombreAlumno(nombre);
+            
+            // Limpiar las listas actuales para que JPA ejecute los deletes por orphanRemoval
+            if (alumno.getTelefonos() != null) {
+                alumno.getTelefonos().clear();
+            } else {
+                alumno.setTelefonos(new java.util.ArrayList<>());
+            }
+            
+            if (alumno.getCorreos() != null) {
+                alumno.getCorreos().clear();
+            } else {
+                alumno.setCorreos(new java.util.ArrayList<>());
+            }
+
+            // Añadir los nuevos teléfonos
+            if (telefonos != null) {
+                for (String tel : telefonos) {
+                    if (tel != null && !tel.trim().isEmpty()) {
+                        TelefonoAlumno ta = new TelefonoAlumno();
+                        ta.setTelefono(tel.trim());
+                        ta.setAlumno(alumno);
+                        alumno.getTelefonos().add(ta);
+                    }
+                }
+            }
+
+            // Añadir los nuevos correos
+            if (correos != null) {
+                for (String email : correos) {
+                    if (email != null && !email.trim().isEmpty()) {
+                        CorreoAlumno ca = new CorreoAlumno();
+                        ca.setCorreo(email.trim());
+                        ca.setAlumno(alumno);
+                        alumno.getCorreos().add(ca);
+                    }
+                }
+            }
+
+            // Guardar cambios del nombre y de los contactos
+            alumnoRepository.save(alumno);
+        }
+    }
 }

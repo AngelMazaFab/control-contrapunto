@@ -138,14 +138,18 @@
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div class="card-form">
-                    <h4 class="mb-4" style="color: #1a1a2e; font-weight: 600;">Nuevo Alumno</h4>
+                    <h4 class="mb-4" style="color: #1a1a2e; font-weight: 600;" 
+                        th:text="${alumno.idAlumno != null ? 'Modificar Alumno' : 'Nuevo Alumno'}">
+                        Nuevo Alumno
+                    </h4>
                     
-                    <form th:action="@{/alumnos/guardar}" method="post">
+                    <form th:action="@{${alumno.idAlumno != null ? '/alumnos/actualizar/' + alumno.idAlumno : '/alumnos/guardar'}}" method="post">
                         
                         <!-- Nombre del Alumno -->
                         <div class="mb-4">
                             <label for="nombre" class="form-label fw-medium">Nombre Completo</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej. Juan Pérez" required>
+                            <input type="text" class="form-control" id="nombre" name="nombre" 
+                                   th:value="${alumno.nombreAlumno}" placeholder="Ej. Juan Pérez" required>
                         </div>
 
                         <!-- Teléfonos -->
@@ -157,7 +161,16 @@
                                 </button>
                             </label>
                             <div id="contenedorTelefonos">
-                                <div class="input-group mb-2">
+                                <!-- Elementos existentes -->
+                                <div class="input-group mb-2" th:each="tel : ${listaTelefonos}">
+                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                    <input type="text" class="form-control" name="telefonos[]" th:value="${tel}" placeholder="Número de teléfono">
+                                    <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()" title="Eliminar">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                                <!-- Elemento vacío por defecto si no hay existentes -->
+                                <div class="input-group mb-2" th:if="${listaTelefonos == null or #lists.isEmpty(listaTelefonos)}">
                                     <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                                     <input type="text" class="form-control" name="telefonos[]" placeholder="Número de teléfono">
                                 </div>
@@ -173,7 +186,16 @@
                                 </button>
                             </label>
                             <div id="contenedorCorreos">
-                                <div class="input-group mb-2">
+                                <!-- Elementos existentes -->
+                                <div class="input-group mb-2" th:each="mail : ${listaCorreos}">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" name="correos[]" th:value="${mail}" placeholder="correo@ejemplo.com">
+                                    <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()" title="Eliminar">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                                <!-- Elemento vacío por defecto si no hay existentes -->
+                                <div class="input-group mb-2" th:if="${listaCorreos == null or #lists.isEmpty(listaCorreos)}">
                                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                                     <input type="email" class="form-control" name="correos[]" placeholder="correo@ejemplo.com">
                                 </div>
@@ -185,7 +207,8 @@
                             <a th:href="@{/alumnos}" class="btn" style="background-color: #CED4DA; color: #495057; font-weight: 500; border-radius: 8px; padding: 10px 20px;">
                                 Cancelar
                             </a>
-                            <button type="submit" class="btn" style="background-color: #FD7E14; color: white; font-weight: 600; border-radius: 8px; padding: 10px 20px;">
+                            <button type="submit" class="btn" style="background-color: #FD7E14; color: white; font-weight: 600; border-radius: 8px; padding: 10px 20px;"
+                                    th:text="${alumno.idAlumno != null ? 'Actualizar' : 'Aceptar'}">
                                 Aceptar
                             </button>
                         </div>
