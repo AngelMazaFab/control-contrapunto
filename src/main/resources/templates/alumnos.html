@@ -259,6 +259,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
+                        <th>Métodos de contacto</th>
                         <th>Último Pago</th>
                         <th>Próximo Pago</th>
                         <th style="text-align:center;">Comprobantes</th>
@@ -285,6 +286,29 @@
                                     Nombre Alumno
                                 </span>
                             </div>
+                        </td>
+
+                        <!-- Columna: Métodos de contacto -->
+                        <td>
+                            <ul class="list-unstyled mb-0" style="font-size: 0.85rem;">
+                                <!-- Teléfonos -->
+                                <li th:each="tel : ${alumno.telefonos}"
+                                    class="d-flex align-items-center gap-1 mb-1">
+                                    <i class="bi bi-telephone" style="color:#6c757d; font-size:0.8rem;"></i>
+                                    <span th:text="${tel.telefono}">55-1234-5678</span>
+                                </li>
+                                <!-- Correos -->
+                                <li th:each="mail : ${alumno.correos}"
+                                    class="d-flex align-items-center gap-1 mb-1">
+                                    <i class="bi bi-envelope" style="color:#6c757d; font-size:0.8rem;"></i>
+                                    <span th:text="${mail.correo}">correo@ejemplo.com</span>
+                                </li>
+                                <!-- Sin contacto registrado -->
+                                <li th:if="${#lists.isEmpty(alumno.telefonos) and #lists.isEmpty(alumno.correos)}"
+                                    style="color:#adb5bd;">
+                                    <i class="bi bi-dash"></i> Sin contacto
+                                </li>
+                            </ul>
                         </td>
 
                         <!-- Columna: Último Pago -->
@@ -352,7 +376,7 @@
 
                     <!-- Estado vacío si no hay alumnos -->
                     <tr th:if="${#lists.isEmpty(alumnos)}">
-                        <td colspan="6" class="empty-state">
+                        <td colspan="7" class="empty-state">
                             <i class="bi bi-people"></i>
                             <strong style="font-size:15px; display:block; color:#6c757d;">
                                 Sin alumnos registrados
