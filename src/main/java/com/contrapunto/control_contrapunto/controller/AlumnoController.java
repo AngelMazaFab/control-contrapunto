@@ -21,9 +21,9 @@ public class AlumnoController {
     @GetMapping("/alumnos")
     public String listarAlumnos(HttpSession session, Model model) {
         // Protección de sesión
-        if (session.getAttribute("adminLogueado") == null) {
-            return "redirect:/login";
-        }
+        // if (session.getAttribute("adminLogueado") == null) {
+        //     return "redirect:/login";
+        // }
 
         model.addAttribute("usuarioActivo", session.getAttribute("adminLogueado"));
         model.addAttribute("activePage", "alumnos");
