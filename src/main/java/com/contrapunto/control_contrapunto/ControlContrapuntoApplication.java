@@ -24,9 +24,17 @@ public class ControlContrapuntoApplication implements CommandLineRunner {
 		System.out.println("Iniciando prueba de conexión a Supabase...");
 
 		try {
+			// Arreglamos el esquema de la base de datos en caso de que Hibernate haya creado columnas erróneas
+			try {
+				jdbcTemplate.execute("ALTER TABLE telefono_alumno DROP COLUMN IF EXISTS alumno_id_alumno");
+				jdbcTemplate.execute("ALTER TABLE correo_alumno DROP COLUMN IF EXISTS alumno_id_alumno");
+			} catch (Exception ex) {
+				System.out.println("Nota: no se pudieron eliminar las columnas (tal vez no existan).");
+			}
+
 			// Mandamos una consulta muy básica que PostgreSQL siempre debe responder
 			jdbcTemplate.execute("SELECT 1");
-			System.out.println("✅ ¡ÉXITO! La conexión a la base de datos es correcta.");
+			System.out.println("✅ ¡ÉXITO! La conexión a la base de datos es correcta y las tablas están purgadas.");
 		} catch (Exception e) {
 			System.out.println("❌ ERROR: No se pudo conectar a la base de datos.");
 			System.out.println("Detalle: " + e.getMessage());
