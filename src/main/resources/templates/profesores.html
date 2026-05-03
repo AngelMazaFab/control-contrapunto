@@ -239,7 +239,6 @@
                         <th>Nombre</th>
                         <th>Sueldo Base</th>
                         <th>Métodos de contacto</th>
-                        <th>Estatus</th>
                         <th style="text-align:center;">Acciones</th>
                     </tr>
                 </thead>
@@ -293,16 +292,6 @@
                                     <i class="bi bi-dash"></i> Sin contacto
                                 </li>
                             </ul>
-                        </td>
-
-                        <!-- Columna: Estatus -->
-                        <td>
-                            <span th:if="${profesor.activo != null and profesor.activo}" class="badge-status badge-status-active">
-                                <i class="bi bi-check-circle-fill"></i> Activo
-                            </span>
-                            <span th:unless="${profesor.activo != null and profesor.activo}" class="badge-status badge-status-inactive">
-                                <i class="bi bi-x-circle-fill"></i> Inactivo
-                            </span>
                         </td>
 
                         <!-- Columna: Acciones -->

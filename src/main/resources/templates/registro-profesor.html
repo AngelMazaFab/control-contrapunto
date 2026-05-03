@@ -174,7 +174,7 @@
                                 <!-- Elementos existentes -->
                                 <div class="input-group mb-2" th:each="tel : ${listaTelefonos}">
                                     <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                                    <input type="text" class="form-control" name="telefonos[]" th:value="${tel}" placeholder="Número de teléfono">
+                                    <input type="text" class="form-control" name="telefonos" th:value="${tel}" placeholder="Número de teléfono">
                                     <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()" title="Eliminar">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
@@ -182,7 +182,7 @@
                                 <!-- Elemento vacío por defecto si no hay existentes -->
                                 <div class="input-group mb-2" th:if="${listaTelefonos == null or #lists.isEmpty(listaTelefonos)}">
                                     <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                                    <input type="text" class="form-control" name="telefonos[]" placeholder="Número de teléfono">
+                                    <input type="text" class="form-control" name="telefonos" placeholder="Número de teléfono">
                                 </div>
                             </div>
                         </div>
@@ -199,7 +199,7 @@
                                 <!-- Elementos existentes -->
                                 <div class="input-group mb-2" th:each="mail : ${listaCorreos}">
                                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                    <input type="email" class="form-control" name="correos[]" th:value="${mail}" placeholder="correo@ejemplo.com">
+                                    <input type="email" class="form-control" name="correos" th:value="${mail}" placeholder="correo@ejemplo.com">
                                     <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()" title="Eliminar">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
@@ -207,7 +207,7 @@
                                 <!-- Elemento vacío por defecto si no hay existentes -->
                                 <div class="input-group mb-2" th:if="${listaCorreos == null or #lists.isEmpty(listaCorreos)}">
                                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                    <input type="email" class="form-control" name="correos[]" placeholder="correo@ejemplo.com">
+                                    <input type="email" class="form-control" name="correos" placeholder="correo@ejemplo.com">
                                 </div>
                             </div>
                         </div>
@@ -240,7 +240,7 @@
         nuevoInput.className = 'input-group mb-2';
         nuevoInput.innerHTML = `
             <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-            <input type="text" class="form-control" name="telefonos[]" placeholder="Número de teléfono">
+            <input type="text" class="form-control" name="telefonos" placeholder="Número de teléfono">
             <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()" title="Eliminar">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -254,7 +254,7 @@
         nuevoInput.className = 'input-group mb-2';
         nuevoInput.innerHTML = `
             <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-            <input type="email" class="form-control" name="correos[]" placeholder="correo@ejemplo.com">
+            <input type="email" class="form-control" name="correos" placeholder="correo@ejemplo.com">
             <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()" title="Eliminar">
                 <i class="bi bi-x-lg"></i>
             </button>

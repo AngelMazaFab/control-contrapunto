@@ -22,9 +22,6 @@ public class Profesor {
     @Column(name = "sueldo_base")
     private Double sueldoBase;
 
-    @Column(name = "activo")
-    private Boolean activo;
-
     @OneToMany(mappedBy = "profesor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TelefonoProfesor> telefonos;
 

@@ -28,6 +28,12 @@ public class ControlContrapuntoApplication implements CommandLineRunner {
 			try {
 				jdbcTemplate.execute("ALTER TABLE telefono_alumno DROP COLUMN IF EXISTS alumno_id_alumno");
 				jdbcTemplate.execute("ALTER TABLE correo_alumno DROP COLUMN IF EXISTS alumno_id_alumno");
+				
+				jdbcTemplate.execute("ALTER TABLE telefono_profesor DROP COLUMN IF EXISTS telefono_profesor");
+				jdbcTemplate.execute("ALTER TABLE telefono_profesor DROP COLUMN IF EXISTS profesor_id_profesor");
+				
+				jdbcTemplate.execute("ALTER TABLE correo_profesor DROP COLUMN IF EXISTS correo_profesor");
+				jdbcTemplate.execute("ALTER TABLE correo_profesor DROP COLUMN IF EXISTS profesor_id_profesor");
 			} catch (Exception ex) {
 				System.out.println("Nota: no se pudieron eliminar las columnas (tal vez no existan).");
 			}

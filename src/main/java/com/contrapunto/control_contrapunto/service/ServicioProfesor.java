@@ -33,8 +33,8 @@ public class ServicioProfesor {
         Profesor profesor = new Profesor();
         profesor.setNombreProfesor(nombre);
         profesor.setSueldoBase(sueldoBase);
-        profesor.setActivo(true);
         
+        // Guardar explícitamente el profesor primero para obtener su ID real
         profesor = profesorRepository.save(profesor);
 
         if (telefonos != null) {

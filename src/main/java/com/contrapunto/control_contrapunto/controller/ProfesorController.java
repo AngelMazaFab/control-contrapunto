@@ -46,8 +46,8 @@ public class ProfesorController {
     public String guardarProfesor(
             @RequestParam("nombre") String nombre,
             @RequestParam(value = "sueldoBase", required = false) Double sueldoBase,
-            @RequestParam(value = "telefonos[]", required = false) List<String> listaTelefonos,
-            @RequestParam(value = "correos[]", required = false) List<String> listaCorreos,
+            @RequestParam(value = "telefonos", required = false) List<String> listaTelefonos,
+            @RequestParam(value = "correos", required = false) List<String> listaCorreos,
             HttpSession session) {
             
         if (session.getAttribute("adminLogueado") == null) {
@@ -93,8 +93,8 @@ public class ProfesorController {
             @org.springframework.web.bind.annotation.PathVariable("id") Long id,
             @RequestParam("nombre") String nombre,
             @RequestParam(value = "sueldoBase", required = false) Double sueldoBase,
-            @RequestParam(value = "telefonos[]", required = false) List<String> listaTelefonos,
-            @RequestParam(value = "correos[]", required = false) List<String> listaCorreos,
+            @RequestParam(value = "telefonos", required = false) List<String> listaTelefonos,
+            @RequestParam(value = "correos", required = false) List<String> listaCorreos,
             HttpSession session) {
             
         if (session.getAttribute("adminLogueado") == null) {
