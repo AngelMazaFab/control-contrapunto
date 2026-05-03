@@ -13,7 +13,7 @@ public class CorreoProfesor {
     @Column(name = "id_correo_profesor")
     private Long idCorreoProfesor;
 
-    @Column(name = "correo", nullable = false)
+    @Column(name = "correo_profesor", nullable = false)
     private String correo;
 
     @ManyToOne(fetch = FetchType.LAZY)

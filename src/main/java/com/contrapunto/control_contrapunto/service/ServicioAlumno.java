@@ -136,4 +136,18 @@ public class ServicioAlumno {
             alumnoRepository.save(alumno);
         }
     }
+
+    @Transactional
+    public void eliminarAlumno(Long id) {
+        Alumno alumno = obtenerPorId(id);
+        if (alumno != null) {
+            if (alumno.getTelefonos() != null) {
+                telefonoAlumnoRepository.deleteAll(alumno.getTelefonos());
+            }
+            if (alumno.getCorreos() != null) {
+                correoAlumnoRepository.deleteAll(alumno.getCorreos());
+            }
+            alumnoRepository.delete(alumno);
+        }
+    }
 }

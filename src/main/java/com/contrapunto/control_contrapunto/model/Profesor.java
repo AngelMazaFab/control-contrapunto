@@ -19,8 +19,11 @@ public class Profesor {
     @Column(name = "nombre_profesor", nullable = false)
     private String nombreProfesor;
 
-    @Column(name = "sueldo_profesor", precision = 10, scale = 2)
-    private BigDecimal sueldoProfesor;
+    @Column(name = "sueldo_base")
+    private Double sueldoBase;
+
+    @Column(name = "activo")
+    private Boolean activo;
 
     @OneToMany(mappedBy = "profesor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TelefonoProfesor> telefonos;

@@ -106,4 +106,14 @@ public class AlumnoController {
 
         return "redirect:/alumnos";
     }
+
+    @GetMapping("/alumnos/eliminar/{id}")
+    public String eliminarAlumno(@org.springframework.web.bind.annotation.PathVariable("id") Long id, HttpSession session) {
+        if (session.getAttribute("adminLogueado") == null) {
+            return "redirect:/login";
+        }
+        
+        servicioAlumno.eliminarAlumno(id);
+        return "redirect:/alumnos";
+    }
 }
