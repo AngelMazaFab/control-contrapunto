@@ -9,10 +9,15 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ClaseRepository extends JpaRepository<Clase, Long> {
 
-    @Query("SELECT COUNT(c) FROM Clase c WHERE c.fechaExacta = :fecha AND c.horaInicio < :horaFin AND c.horaFin > :horaInicio AND (c.aula.idAula = :idAula OR c.profesor.idProfesor = :idProfesor)")
+    @Query("SELECT COUNT(c) FROM Clase c WHERE c.fechaExacta = :fecha AND c.horaInicio < :horaFin AND c.horaFin > :horaInicio AND (c.salon.id = :idAula OR c.profesor.idProfesor = :idProfesor)")
     long contarEmpalmesProfesorAula(@Param("fecha") java.time.LocalDate fecha,
                                     @Param("horaInicio") java.time.LocalTime horaInicio,
                                     @Param("horaFin") java.time.LocalTime horaFin,
                                     @Param("idAula") Long idAula,
                                     @Param("idProfesor") Long idProfesor);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("DELETE FROM Clase c WHERE c.esReposicion > 0 AND c.fechaExacta < CURRENT_DATE")
+    void eliminarReposicionesAntiguas();
 }

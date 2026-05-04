@@ -22,7 +22,7 @@ public class ServicioClase {
                 nuevaClase.getFechaExacta(),
                 nuevaClase.getHoraInicio(),
                 nuevaClase.getHoraFin(),
-                nuevaClase.getAula().getIdAula(),
+                nuevaClase.getSalon().getId(),
                 nuevaClase.getProfesor().getIdProfesor()
         );
 

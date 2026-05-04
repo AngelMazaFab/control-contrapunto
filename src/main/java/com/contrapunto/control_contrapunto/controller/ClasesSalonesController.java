@@ -1,7 +1,14 @@
 package com.contrapunto.control_contrapunto.controller;
 
 import com.contrapunto.control_contrapunto.model.Salon;
+import com.contrapunto.control_contrapunto.model.Clase;
 import com.contrapunto.control_contrapunto.service.SalonService;
+import com.contrapunto.control_contrapunto.service.ServicioClase;
+import com.contrapunto.control_contrapunto.service.ServicioProfesor;
+import com.contrapunto.control_contrapunto.service.ServicioAlumno;
+import com.contrapunto.control_contrapunto.repository.MateriaRepository;
+import com.contrapunto.control_contrapunto.repository.DiaSemanaRepository;
+import com.contrapunto.control_contrapunto.repository.InasistenciaRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -13,6 +20,12 @@ import org.springframework.web.bind.annotation.*;
 public class ClasesSalonesController {
 
     private final SalonService salonService;
+    private final ServicioClase servicioClase;
+    private final ServicioProfesor servicioProfesor;
+    private final ServicioAlumno servicioAlumno;
+    private final MateriaRepository materiaRepository;
+    private final DiaSemanaRepository diaSemanaRepository;
+    private final InasistenciaRepository inasistenciaRepository;
 
     @GetMapping("/clases-salones")
     public String mostrarClasesSalones(
@@ -33,6 +46,15 @@ public class ClasesSalonesController {
         model.addAttribute("salones", salonService.listarTodos());
         model.addAttribute("salonObj", new Salon());
 
+        // Inyectar listas para los dropdowns de Clase
+        model.addAttribute("listProfesores", servicioProfesor.listarTodos());
+        model.addAttribute("listAlumnos", servicioAlumno.listarTodos());
+        model.addAttribute("listMaterias", materiaRepository.findAll());
+        model.addAttribute("listDiasSemana", diaSemanaRepository.findAll());
+        model.addAttribute("listSalones", salonService.listarTodos());
+        model.addAttribute("listInasistencias", inasistenciaRepository.findInasistenciasPendientes());
+        model.addAttribute("claseObj", new Clase());
+
         return "clases-salones";
     }
 
@@ -52,5 +74,22 @@ public class ClasesSalonesController {
         }
         salonService.eliminar(id);
         return "redirect:/clases-salones?tab=salones";
+    }
+
+    @PostMapping("/clases/guardar")
+    public String guardarClase(@ModelAttribute("claseObj") Clase clase, HttpSession session) {
+        if (session.getAttribute("adminLogueado") == null) {
+            return "redirect:/login";
+        }
+        
+        // El @Scheduled se encarga de limpiar las reposiciones pasadas (ClaseCleanupService).
+        try {
+            servicioClase.agendarClase(clase);
+        } catch (Exception e) {
+            // Manejo básico de excepción (se podría retornar al formulario con el error)
+            System.err.println("Error al agendar clase: " + e.getMessage());
+        }
+        
+        return "redirect:/clases-salones?tab=clases";
     }
 }
