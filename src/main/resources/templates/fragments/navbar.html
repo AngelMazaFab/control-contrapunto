@@ -6,55 +6,67 @@
   ============================================================
   Fragmento: navbar.html
   Uso: th:replace="~{fragments/navbar :: sidebar}"
+  Menú principal (3 ítems): Alumnos | Profesores | Clases/Salones
   ============================================================
 -->
 <nav th:fragment="sidebar" id="sidebar"
      class="d-flex flex-column flex-shrink-0 p-0"
-     style="width: 260px; min-height: 100vh; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%); position: fixed; left: 0; top: 0; z-index: 1000; box-shadow: 4px 0 20px rgba(0,0,0,0.3);">
+     style="width: 260px; min-height: 100vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+            position: fixed; left: 0; top: 0; z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.3);">
 
-    <!-- Logo / Marca -->
+    <!-- ── Logo / Marca ── -->
     <div class="px-4 py-4 border-bottom border-secondary border-opacity-25">
         <div class="d-flex align-items-center gap-2">
             <div class="rounded-circle d-flex align-items-center justify-content-center"
-                 style="width:40px; height:40px; background: linear-gradient(135deg, #FD7E14, #e8651a); flex-shrink:0;">
+                 style="width:40px; height:40px;
+                        background: linear-gradient(135deg, #FD7E14, #e8651a); flex-shrink:0;">
                 <i class="bi bi-music-note-beamed text-white" style="font-size:18px;"></i>
             </div>
             <div>
-                <span class="fw-bold text-white" style="font-size:15px; font-family:'Inter',sans-serif; letter-spacing:0.3px;">
+                <span class="fw-bold text-white"
+                      style="font-size:15px; font-family:'Inter',sans-serif; letter-spacing:0.3px;">
                     Control
                 </span><br>
-                <span style="font-size:11px; color: #FD7E14; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase;">
+                <span style="font-size:11px; color:#FD7E14; font-family:'Inter',sans-serif;
+                             letter-spacing:1px; text-transform:uppercase;">
                     Contrapunto
                 </span>
             </div>
         </div>
     </div>
 
-    <!-- Usuario activo -->
+    <!-- ── Usuario activo ── -->
     <div class="px-4 py-3 border-bottom border-secondary border-opacity-25">
         <div class="d-flex align-items-center gap-2">
-            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
-                 style="width:34px; height:34px; flex-shrink:0; background: rgba(253,126,20,0.2) !important; border: 1px solid rgba(253,126,20,0.4);">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:34px; height:34px; flex-shrink:0;
+                        background: rgba(253,126,20,0.2); border: 1px solid rgba(253,126,20,0.4);">
                 <i class="bi bi-person-fill" style="color:#FD7E14; font-size:16px;"></i>
             </div>
             <div>
                 <span class="text-white" style="font-size:13px; font-family:'Inter',sans-serif;"
-                      th:text="${usuarioActivo != null ? usuarioActivo : 'Administrador'}">Administrador</span><br>
-                <span style="font-size:11px; color: #8b9db5;">Admin</span>
+                      th:text="${usuarioActivo != null ? usuarioActivo : 'Administrador'}">
+                    Administrador
+                </span><br>
+                <span style="font-size:11px; color:#8b9db5;">Admin</span>
             </div>
         </div>
     </div>
 
-    <!-- Menú de navegación -->
+    <!-- ── Menú de navegación: 3 ítems ── -->
     <ul class="nav flex-column px-3 py-3 flex-grow-1" style="gap: 4px;">
 
         <li class="nav-item">
             <span class="px-2 mb-1 d-block"
-                  style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#5a7396; font-family:'Inter',sans-serif;">
+                  style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+                         color:#5a7396; font-family:'Inter',sans-serif;">
                 Catálogos
             </span>
         </li>
 
+        <!-- 1. Alumnos -->
         <li class="nav-item">
             <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
                th:classappend="${activePage == 'alumnos'} ? 'active' : ''"
@@ -65,6 +77,7 @@
             </a>
         </li>
 
+        <!-- 2. Profesores -->
         <li class="nav-item">
             <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
                th:classappend="${activePage == 'profesores'} ? 'active' : ''"
@@ -75,55 +88,20 @@
             </a>
         </li>
 
+        <!-- 3. Clases/Salones (módulo unificado: Salones + Clases + Talleres) -->
         <li class="nav-item">
             <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
-               th:classappend="${activePage == 'salones'} ? 'active' : ''"
-               th:href="@{/salones}"
-               id="nav-salones">
-                <i class="bi bi-building" style="width:18px;"></i>
-                <span>Salones</span>
+               th:classappend="${activePage == 'clases-salones' or activePage == 'salones' or activePage == 'clases'} ? 'active' : ''"
+               th:href="@{/clases-salones}"
+               id="nav-clases-salones">
+                <i class="bi bi-layout-split" style="width:18px;"></i>
+                <span>Clases/Salones</span>
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
-               th:classappend="${activePage == 'clases'} ? 'active' : ''"
-               th:href="@{/clases}"
-               id="nav-clases">
-                <i class="bi bi-calendar3-week" style="width:18px;"></i>
-                <span>Clases</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
-               th:classappend="${activePage == 'talleres'} ? 'active' : ''"
-               th:href="@{/talleres}"
-               id="nav-talleres">
-                <i class="bi bi-vinyl-fill" style="width:18px;"></i>
-                <span>Talleres</span>
-            </a>
-        </li>
-
-        <li class="nav-item mt-2">
-            <span class="px-2 mb-1 d-block"
-                  style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#5a7396; font-family:'Inter',sans-serif;">
-                Administración
-            </span>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
-               th:classappend="${activePage == 'finanzas'} ? 'active' : ''"
-               th:href="@{/finanzas}"
-               id="nav-finanzas">
-                <i class="bi bi-cash-coin" style="width:18px;"></i>
-                <span>Finanzas</span>
-            </a>
-        </li>
     </ul>
 
-    <!-- Cerrar sesión -->
+    <!-- ── Cerrar sesión ── -->
     <div class="px-3 py-3 border-top border-secondary border-opacity-25">
         <a th:href="@{/logout}"
            class="nav-link sidebar-link-logout rounded-3 d-flex align-items-center gap-3 px-3 py-2"
@@ -132,7 +110,7 @@
             <span>Cerrar sesión</span>
         </a>
     </div>
-</nav>
 
+</nav>
 </body>
 </html>

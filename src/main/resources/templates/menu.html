@@ -250,10 +250,10 @@
             <i class="bi bi-grid-3x3-gap me-2" style="color:#FD7E14;"></i>Módulos del Sistema
         </h3>
 
-        <!-- Cuadrícula de módulos -->
+        <!-- Cuadrícula de módulos (solo 3) -->
         <div class="row g-4">
 
-            <!-- Alumnos -->
+            <!-- 1. Alumnos -->
             <div class="col-12 col-sm-6 col-xl-4">
                 <a th:href="@{/alumnos}" class="module-card" id="modulo-alumnos"
                    style="--card-accent: #FD7E14;">
@@ -271,7 +271,7 @@
                 </a>
             </div>
 
-            <!-- Profesores -->
+            <!-- 2. Profesores -->
             <div class="col-12 col-sm-6 col-xl-4">
                 <a th:href="@{/profesores}" class="module-card" id="modulo-profesores"
                    style="--card-accent: #0d6efd;">
@@ -289,74 +289,20 @@
                 </a>
             </div>
 
-            <!-- Salones -->
+            <!-- 3. Clases/Salones (módulo unificado) -->
             <div class="col-12 col-sm-6 col-xl-4">
-                <a th:href="@{/salones}" class="module-card" id="modulo-salones"
-                   style="--card-accent: #198754;">
-                    <div class="module-icon"
-                         style="background: rgba(25,135,84,0.1); color:#198754;">
-                        <i class="bi bi-building"></i>
-                    </div>
-                    <div>
-                        <div class="module-title">Salones</div>
-                        <div class="module-desc">Consulta y configura los salones y aulas disponibles.</div>
-                    </div>
-                    <span class="module-arrow" style="color:#198754;">
-                        Ver catálogo <i class="bi bi-arrow-right"></i>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Clases -->
-            <div class="col-12 col-sm-6 col-xl-4">
-                <a th:href="@{/clases}" class="module-card" id="modulo-clases"
+                <a th:href="@{/clases-salones}" class="module-card" id="modulo-clases-salones"
                    style="--card-accent: #6f42c1;">
                     <div class="module-icon"
                          style="background: rgba(111,66,193,0.1); color:#6f42c1;">
-                        <i class="bi bi-calendar3-week"></i>
+                        <i class="bi bi-layout-split"></i>
                     </div>
                     <div>
-                        <div class="module-title">Clases</div>
-                        <div class="module-desc">Programa y gestiona el calendario de clases con control de empalmes.</div>
+                        <div class="module-title">Clases/Salones</div>
+                        <div class="module-desc">Gestiona salones, clases y talleres desde un panel unificado.</div>
                     </div>
                     <span class="module-arrow" style="color:#6f42c1;">
-                        Ver catálogo <i class="bi bi-arrow-right"></i>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Talleres -->
-            <div class="col-12 col-sm-6 col-xl-4">
-                <a th:href="@{/talleres}" class="module-card" id="modulo-talleres"
-                   style="--card-accent: #dc3545;">
-                    <div class="module-icon"
-                         style="background: rgba(220,53,69,0.1); color:#dc3545;">
-                        <i class="bi bi-vinyl-fill"></i>
-                    </div>
-                    <div>
-                        <div class="module-title">Talleres</div>
-                        <div class="module-desc">Organiza los talleres especiales y eventos del programa.</div>
-                    </div>
-                    <span class="module-arrow" style="color:#dc3545;">
-                        Ver catálogo <i class="bi bi-arrow-right"></i>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Finanzas -->
-            <div class="col-12 col-sm-6 col-xl-4">
-                <a th:href="@{/finanzas}" class="module-card" id="modulo-finanzas"
-                   style="--card-accent: #20c997;">
-                    <div class="module-icon"
-                         style="background: rgba(32,201,151,0.1); color:#20c997;">
-                        <i class="bi bi-cash-coin"></i>
-                    </div>
-                    <div>
-                        <div class="module-title">Finanzas</div>
-                        <div class="module-desc">Controla pagos, comprobantes y el flujo económico del sistema.</div>
-                    </div>
-                    <span class="module-arrow" style="color:#20c997;">
-                        Ver catálogo <i class="bi bi-arrow-right"></i>
+                        Ver módulo <i class="bi bi-arrow-right"></i>
                     </span>
                 </a>
             </div>
