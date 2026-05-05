@@ -53,6 +53,7 @@ public class ClasesSalonesController {
         model.addAttribute("listDiasSemana", diaSemanaRepository.findAll());
         model.addAttribute("listSalones", salonService.listarTodos());
         model.addAttribute("listInasistencias", inasistenciaRepository.findInasistenciasPendientes());
+        model.addAttribute("listClases", servicioClase.listarTodos());
         model.addAttribute("claseObj", new Clase());
 
         return "clases-salones";
@@ -84,12 +85,22 @@ public class ClasesSalonesController {
         
         // El @Scheduled se encarga de limpiar las reposiciones pasadas (ClaseCleanupService).
         try {
+            if (clase.getTipoClase() == null) clase.setTipoClase(false); // Seguro en caso de checkbox vacío
             servicioClase.agendarClase(clase);
         } catch (Exception e) {
-            // Manejo básico de excepción (se podría retornar al formulario con el error)
             System.err.println("Error al agendar clase: " + e.getMessage());
+            e.printStackTrace();
         }
         
+        return "redirect:/clases-salones?tab=clases";
+    }
+
+    @GetMapping("/clases/eliminar/{id}")
+    public String eliminarClase(@PathVariable("id") Long id, HttpSession session) {
+        if (session.getAttribute("adminLogueado") == null) {
+            return "redirect:/login";
+        }
+        servicioClase.eliminar(id);
         return "redirect:/clases-salones?tab=clases";
     }
 }

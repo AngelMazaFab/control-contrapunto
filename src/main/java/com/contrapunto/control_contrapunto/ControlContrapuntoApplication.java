@@ -36,9 +36,23 @@ public class ControlContrapuntoApplication implements CommandLineRunner {
 				
 				jdbcTemplate.execute("ALTER TABLE correo_profesor DROP COLUMN IF EXISTS correo_profesor");
 				jdbcTemplate.execute("ALTER TABLE correo_profesor DROP COLUMN IF EXISTS profesor_id_profesor");
+				
+				// Limpieza de columnas duplicadas en la tabla clase generadas por Hibernate
+				jdbcTemplate.execute("ALTER TABLE clase DROP COLUMN IF EXISTS aula_id_aula");
+				jdbcTemplate.execute("ALTER TABLE clase DROP COLUMN IF EXISTS profesor_id_profesor");
+				jdbcTemplate.execute("ALTER TABLE clase DROP COLUMN IF EXISTS materia_id_materia");
+				jdbcTemplate.execute("ALTER TABLE clase DROP COLUMN IF EXISTS dia_semana_id_dia_semana");
+
+				// Solución al conflicto de llaves foráneas: eliminar constraint vieja a tabla 'aula'
+				jdbcTemplate.execute("ALTER TABLE clase DROP CONSTRAINT IF EXISTS fkdnm532p2jrmlamven0a1725t9");
 			} catch (Exception ex) {
-				System.out.println("Nota: no se pudieron eliminar las columnas (tal vez no existan).");
+				System.out.println("Nota: no se pudieron eliminar las columnas o constraints (tal vez no existan).");
 			}
+
+			// Listar tablas para depuración
+			jdbcTemplate.queryForList("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").forEach(row -> {
+				System.out.println("Tabla encontrada: " + row.get("table_name"));
+			});
 
 			// Mandamos una consulta muy básica que PostgreSQL siempre debe responder
 			jdbcTemplate.execute("SELECT 1");

@@ -33,4 +33,12 @@ public class ServicioClase {
         // 3. Si pasa las validaciones, guardar en la base de datos
         return claseRepository.save(nuevaClase);
     }
+
+    public java.util.List<Clase> listarTodos() {
+        return claseRepository.findAll();
+    }
+
+    public void eliminar(Long id) {
+        claseRepository.deleteById(id);
+    }
 }
