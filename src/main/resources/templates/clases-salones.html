@@ -345,7 +345,9 @@
                      th:data-dia="${c.diaSemana != null ? c.diaSemana.nombreDia : ''}"
                      th:data-materia="${c.materia != null ? c.materia.nombreMateria : ''}"
                      th:data-profesor="${c.profesor != null ? c.profesor.nombreProfesor : ''}"
-                     th:data-salon="${c.salon != null ? c.salon.nombre : ''}"></div>
+                     th:data-salon="${c.salon != null ? c.salon.nombre : ''}"
+                     th:data-primer-alumno="${c.alumnos != null and !c.alumnos.isEmpty() ? c.alumnos[0].nombreAlumno : ''}"
+                     th:data-cantidad-alumnos="${c.alumnos != null ? c.alumnos.size() : 0}"></div>
             </div>
 
             <!-- Cuadrícula de horarios por día -->
@@ -684,6 +686,17 @@
         // Leer clases guardadas desde el DOM
         const clasesGuardadas = [];
         document.querySelectorAll('.clase-item').forEach(el => {
+            let primerAlumno = el.getAttribute('data-primer-alumno') || '';
+            let cantAlumnos = parseInt(el.getAttribute('data-cantidad-alumnos') || '0');
+            let textoAlumno = '';
+            if (cantAlumnos === 1) {
+                textoAlumno = primerAlumno;
+            } else if (cantAlumnos > 1) {
+                textoAlumno = primerAlumno + '...';
+            } else {
+                textoAlumno = 'Sin alumnos asignados';
+            }
+
             clasesGuardadas.push({
                 id: el.getAttribute('data-id'),
                 horaInicio: el.getAttribute('data-hora-inicio'), // Ej. "07:00:00"
@@ -691,7 +704,8 @@
                 dia: el.getAttribute('data-dia'),
                 materia: el.getAttribute('data-materia'),
                 profesor: el.getAttribute('data-profesor'),
-                salon: el.getAttribute('data-salon')
+                salon: el.getAttribute('data-salon'),
+                alumno: textoAlumno
             });
         });
 
@@ -721,7 +735,8 @@
                     td.innerHTML = `
                         <div style="background:#f8f5ff; border:1px solid #dcd1f9; border-radius:8px; padding:6px; font-size:11px; text-align:left; position:relative; min-width:120px;">
                             <div style="font-weight:700; color:#5a32a3; margin-bottom:2px; padding-right:20px;">${claseEnCelda.materia}</div>
-                            <div style="color:#6c757d; font-size:10px;"><i class="bi bi-person me-1"></i>${claseEnCelda.profesor}</div>
+                            <div style="color:#6c757d; font-size:10px;"><i class="bi bi-person-badge me-1"></i>${claseEnCelda.profesor}</div>
+                            <div style="color:#6c757d; font-size:10px;"><i class="bi bi-people me-1"></i>${claseEnCelda.alumno}</div>
                             <div style="color:#6c757d; font-size:10px;"><i class="bi bi-building me-1"></i>${claseEnCelda.salon}</div>
                             <a href="/clases/eliminar/${claseEnCelda.id}" 
                                onclick="return confirm('¿Estás seguro de eliminar esta clase?');"
