@@ -389,22 +389,65 @@
                 <div class="content-card-header">
                     <div class="content-card-title">
                         <i class="bi bi-vinyl-fill" style="color:#6f42c1;"></i>
-                        Talleres Especiales
+                        Talleres Especiales / Clases Grupales
                     </div>
                     <span class="badge"
                           style="background:rgba(111,66,193,0.1); color:#6f42c1;
                                  font-size:12px; padding:5px 12px; border-radius:50px;">
-                        Clase especial
+                        Visualización
                     </span>
                 </div>
 
-                <div class="empty-state py-5">
-                    <i class="bi bi-vinyl-fill" style="color:#dee2e6;"></i>
-                    <p style="font-size:14px; color:#adb5bd; margin-top:8px;">
-                        Los talleres son un tipo especial de clase.<br>
-                        Usa el botón <strong>Nuevo Taller</strong> para registrar uno.
-                    </p>
+                <div class="table-responsive">
+                    <table class="table tabla-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Día</th>
+                                <th>Horario</th>
+                                <th>Materia</th>
+                                <th>Profesor</th>
+                                <th>Salón</th>
+                                <th>Alumnos Inscritos</th>
+                                <th style="text-align:center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-talleres">
+                            <!-- Utilizamos SpEL para filtrar las clases donde tipoClase == true -->
+                            <tr th:each="c : ${listClases.?[tipoClase == true]}">
+                                <td th:text="${c.diaSemana != null ? c.diaSemana.nombreDia : ''}">Lunes</td>
+                                <td th:text="${c.horaInicio + ' - ' + c.horaFin}">07:00 - 08:00</td>
+                                <td th:text="${c.materia != null ? c.materia.nombreMateria : ''}">Materia</td>
+                                <td th:text="${c.profesor != null ? c.profesor.nombreProfesor : ''}">Profesor</td>
+                                <td th:text="${c.salon != null ? c.salon.nombre : ''}">Salón</td>
+                                <td style="max-width: 250px;">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span th:each="a : ${c.alumnos}" class="badge bg-light text-dark border" style="font-weight: 500;" th:text="${a.nombreAlumno}"></span>
+                                    </div>
+                                    <span th:if="${c.alumnos == null or c.alumnos.isEmpty()}" class="text-muted" style="font-size:12px;">Sin inscritos</span>
+                                </td>
+                                <td style="text-align:center;">
+                                    <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar clase grupal"
+                                       th:href="@{/clases/eliminar/{id}(id=${c.idClase})}"
+                                       onclick="return confirm('¿Estás seguro de eliminar este taller/clase grupal?');">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${listClases.?[tipoClase == true].isEmpty()}">
+                                <td colspan="7">
+                                    <div class="empty-state py-4">
+                                        <i class="bi bi-vinyl-fill"></i>
+                                        <p style="font-size:14px; color:#adb5bd; margin-top:8px;">
+                                            No hay talleres o clases grupales registrados aún.<br>
+                                            Agrega una clase desde la cuadrícula y activa la opción <strong>Clase Grupal</strong>.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+
             </div>
 
         </div><!-- /panel-talleres -->
@@ -523,13 +566,38 @@
               <!-- Hidden input para el día de la semana (disabled ignora el post) -->
               <input type="hidden" id="modal-clase-dia-hidden" name="diaSemana.idDiaSemana">
             </div>
-            <!-- Nuevo selector de Alumno individual -->
-            <div class="col-md-12">
+            <!-- Selector de Alumno (Individual) -->
+            <div class="col-md-12" id="contenedor-alumno-individual">
               <label for="modal-clase-alumnos" class="form-label fw-semibold" style="font-size:13px;">Alumno (Para clases individuales)</label>
               <select class="form-select" id="modal-clase-alumnos" name="alumnos" required>
                 <option value="" disabled selected>Seleccione un alumno...</option>
                 <option th:each="a : ${listAlumnos}" th:value="${a.idAlumno}" th:text="${a.nombreAlumno}"></option>
               </select>
+            </div>
+
+            <!-- Selector de Alumnos (Grupal) -->
+            <div class="col-md-12 d-none" id="contenedor-alumno-grupal">
+              <label class="form-label fw-semibold" style="font-size:13px;">Alumnos Inscritos (Clase Grupal)</label>
+              <div class="dropdown">
+                  <button class="form-select text-start d-flex justify-content-between align-items-center" type="button" id="dropdownAlumnosGrupales" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="background-color: #fff; color: #495057;">
+                      <span>Seleccionar estudiantes...</span>
+                      <i class="bi bi-chevron-down" style="font-size:12px;"></i>
+                  </button>
+                  <div class="dropdown-menu w-100 p-3 shadow" aria-labelledby="dropdownAlumnosGrupales" style="border-radius: 12px; border: 1px solid #e9ecef;">
+                      <div class="input-group input-group-sm mb-2">
+                          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                          <input type="text" class="form-control border-start-0 ps-0" id="search-alumnos-grupales" placeholder="Buscar alumno..." style="box-shadow: none;">
+                      </div>
+                      <div id="lista-alumnos-grupales" style="max-height: 200px; overflow-y: auto;">
+                          <div class="form-check custom-checkbox-item py-1 ms-1" th:each="a : ${listAlumnos}" style="border-bottom: 1px solid #f8f9fa;">
+                              <input class="form-check-input checkbox-alumno-grupal" type="checkbox" name="alumnos" th:value="${a.idAlumno}" th:id="'chk_grupal_' + ${a.idAlumno}" th:data-nombre="${a.nombreAlumno}" disabled>
+                              <label class="form-check-label w-100" th:for="'chk_grupal_' + ${a.idAlumno}" th:text="${a.nombreAlumno}" style="font-size: 13.5px; cursor: pointer;"></label>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <!-- Contenedor donde se pintarán los alumnos seleccionados -->
+              <div id="badges-alumnos-grupales" class="mt-2 d-flex flex-wrap gap-2"></div>
             </div>
           </div>
 
@@ -773,6 +841,97 @@
     }
 
     /* ──────────────────────────────────────────────────────
+       Configuración del switch Grupal y el Multi-Select de alumnos
+    ────────────────────────────────────────────────────── */
+    const switchGrupal = document.getElementById('modal-switch-grupal');
+    const contIndividual = document.getElementById('contenedor-alumno-individual');
+    const selectIndividual = document.getElementById('modal-clase-alumnos');
+    const contGrupal = document.getElementById('contenedor-alumno-grupal');
+    const checkboxesGrupal = document.querySelectorAll('.checkbox-alumno-grupal');
+    const badgesContainer = document.getElementById('badges-alumnos-grupales');
+    const searchAlumnosGrupales = document.getElementById('search-alumnos-grupales');
+
+    // Función para actualizar los badges cuando se seleccionan checkboxes
+    function actualizarBadgesGrupales() {
+        if (!badgesContainer) return;
+        badgesContainer.innerHTML = '';
+        let seleccionados = 0;
+        checkboxesGrupal.forEach(chk => {
+            if (chk.checked) {
+                seleccionados++;
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
+                badge.style.fontSize = '12px';
+                badge.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted cursor-pointer btn-remove-badge" style="cursor:pointer;" data-id="${chk.id}"></i>`;
+                badgesContainer.appendChild(badge);
+            }
+        });
+        
+        // Agregar eventos de eliminar a las cruces de los badges
+        document.querySelectorAll('.btn-remove-badge').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const chkId = this.getAttribute('data-id');
+                document.getElementById(chkId).checked = false;
+                actualizarBadgesGrupales();
+            });
+        });
+
+        const btnDropdown = document.getElementById('dropdownAlumnosGrupales');
+        if (!btnDropdown) return;
+        const btnSpan = btnDropdown.querySelector('span');
+        if (seleccionados > 0) {
+            btnSpan.textContent = `${seleccionados} alumno(s) seleccionado(s)`;
+            btnSpan.classList.add('fw-bold', 'text-primary');
+        } else {
+            btnSpan.textContent = 'Seleccionar estudiantes...';
+            btnSpan.classList.remove('fw-bold', 'text-primary');
+        }
+    }
+
+    // Evento de cambio en los checkboxes para actualizar los badges
+    checkboxesGrupal.forEach(chk => {
+        chk.addEventListener('change', actualizarBadgesGrupales);
+    });
+
+    // Lógica del buscador en la lista de checkboxes
+    if (searchAlumnosGrupales) {
+        searchAlumnosGrupales.addEventListener('input', function() {
+            const text = this.value.toLowerCase();
+            document.querySelectorAll('#lista-alumnos-grupales .custom-checkbox-item').forEach(item => {
+                const label = item.querySelector('label').textContent.toLowerCase();
+                if (label.includes(text)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Evento del Switch Grupal
+    if (switchGrupal) {
+        switchGrupal.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                // Activar modo grupal
+                contIndividual.classList.add('d-none');
+                selectIndividual.disabled = true;
+                selectIndividual.required = false;
+
+                contGrupal.classList.remove('d-none');
+                checkboxesGrupal.forEach(chk => chk.disabled = false);
+            } else {
+                // Activar modo individual
+                contGrupal.classList.add('d-none');
+                checkboxesGrupal.forEach(chk => chk.disabled = true);
+
+                contIndividual.classList.remove('d-none');
+                selectIndividual.disabled = false;
+                selectIndividual.required = true;
+            }
+        });
+    }
+
+    /* ──────────────────────────────────────────────────────
        Modal de Clase — Apertura con contexto
     ────────────────────────────────────────────────────── */
 
@@ -827,15 +986,16 @@
         document.getElementById('formClase').reset();
         
         document.getElementById('modal-switch-grupal').checked = false;
+        // Lanzamos el evento change para que se ejecute la lógica del modo individual
+        document.getElementById('modal-switch-grupal').dispatchEvent(new Event('change'));
+
         document.getElementById('modal-switch-reposicion').checked = false;
         document.getElementById('modal-contenedor-inasistencia').classList.add('d-none');
 
-        // Restaurar estado del selector de alumnos
-        const selectAlumnos = document.getElementById('modal-clase-alumnos');
-        if (selectAlumnos) {
-            selectAlumnos.disabled = false;
-            selectAlumnos.required = true;
-        }
+        // Limpiar búsqueda del grupal y actualizar badges
+        document.getElementById('search-alumnos-grupales').value = '';
+        document.getElementById('search-alumnos-grupales').dispatchEvent(new Event('input'));
+        actualizarBadgesGrupales();
 
         new bootstrap.Modal(document.getElementById('modalClase')).show();
     }
@@ -845,20 +1005,7 @@
         // Construir cuadrícula al cargar
         buildHorario();
 
-        const selectAlumnos = document.getElementById('modal-clase-alumnos');
-
-        document.getElementById('modal-switch-grupal')?.addEventListener('change', function () {
-            if (this.checked) {
-                // Si es grupal, desactivamos el selector de alumno y le quitamos el required
-                selectAlumnos.disabled = true;
-                selectAlumnos.required = false;
-                selectAlumnos.value = ''; // Limpiamos selección
-            } else {
-                // Si es individual, es obligatorio
-                selectAlumnos.disabled = false;
-                selectAlumnos.required = true;
-            }
-        });
+        // El listener de modal-switch-grupal ya está definido globalmente arriba
 
         document.getElementById('modal-switch-reposicion')?.addEventListener('change', function () {
             document.getElementById('modal-contenedor-inasistencia')
