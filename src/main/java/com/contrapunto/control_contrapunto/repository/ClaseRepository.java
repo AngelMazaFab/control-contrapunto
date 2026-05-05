@@ -18,6 +18,6 @@ public interface ClaseRepository extends JpaRepository<Clase, Long> {
 
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.transaction.annotation.Transactional
-    @Query("DELETE FROM Clase c WHERE c.esReposicion > 0 AND c.fechaExacta < CURRENT_DATE")
+    @Query("DELETE FROM Clase c WHERE c.esReposicion = -1 AND c.fechaExacta < CURRENT_DATE")
     void eliminarReposicionesAntiguas();
 }

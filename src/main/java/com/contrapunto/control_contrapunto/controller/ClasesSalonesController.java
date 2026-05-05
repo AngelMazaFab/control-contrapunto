@@ -26,6 +26,7 @@ public class ClasesSalonesController {
     private final MateriaRepository materiaRepository;
     private final DiaSemanaRepository diaSemanaRepository;
     private final InasistenciaRepository inasistenciaRepository;
+    private final com.contrapunto.control_contrapunto.service.ClaseCleanupService claseCleanupService;
 
     @GetMapping("/clases-salones")
     public String mostrarClasesSalones(
@@ -37,6 +38,11 @@ public class ClasesSalonesController {
         if (admin == null) {
             return "redirect:/login";
         }
+
+        // Limpieza pasiva de clases temporales:
+        // Garantiza que si el servidor estuvo apagado a medianoche,
+        // al cargar la vista se eliminen las clases expiradas antes de mostrarlas.
+        claseCleanupService.limpiarReposicionesAntiguas();
 
         model.addAttribute("usuarioActivo", admin);
         model.addAttribute("activePage", "clases-salones");
