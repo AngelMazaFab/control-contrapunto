@@ -28,7 +28,7 @@ public class ComprobantePago {
     @Column(name = "archivo_url")
     private String archivoUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_alumno", nullable = false)
     private Alumno alumno;
 }

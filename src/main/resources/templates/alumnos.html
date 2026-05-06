@@ -430,22 +430,26 @@
 
         <!-- Vista de Formulario -->
         <div id="vistaFormularioComprobantes" class="d-none">
-            <form action="/comprobantes/guardar" method="post">
+            <!-- id="formComprobante": interceptado por JS, NO hace submit normal -->
+            <form id="formComprobante">
                 <input type="hidden" name="id_alumno" id="formIdAlumno">
                 
                 <div class="mb-3">
                     <label for="formImporte" class="form-label">Monto</label>
-                    <input type="number" step="0.01" class="form-control" id="formImporte" name="importe" required>
+                    <input type="number" step="0.01" class="form-control" id="formImporte" name="importe"
+                           min="0.01" required>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="formAsunto" class="form-label">Asunto</label>
+                    <label for="formAsunto" class="form-label">Asunto / Descripci&oacute;n</label>
                     <input type="text" class="form-control" id="formAsunto" name="asunto" required>
                 </div>
+
+                <div id="mensajeFormComprobante" class="d-none mb-2"></div>
                 
                 <div class="d-flex justify-content-end gap-2">
                     <button type="button" class="btn btn-secondary" id="btnOcultarFormulario">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Guardar Comprobante</button>
+                    <button type="submit" class="btn btn-success" id="btnGuardarComprobante">Guardar Comprobante</button>
                 </div>
             </form>
         </div>
@@ -462,7 +466,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const modalComprobantes = new bootstrap.Modal(document.getElementById('modalComprobantes'));
+        const modalEl = document.getElementById('modalComprobantes');
+        const modalComprobantes = new bootstrap.Modal(modalEl);
         const vistaTabla = document.getElementById('vistaTablaComprobantes');
         const vistaFormulario = document.getElementById('vistaFormularioComprobantes');
         const modalFooter = document.getElementById('modalFooterComprobantes');
@@ -470,24 +475,19 @@
         const btnOcultarFormulario = document.getElementById('btnOcultarFormulario');
         const formIdAlumno = document.getElementById('formIdAlumno');
         const tablaBody = document.querySelector('#tablaModalComprobantes tbody');
+        const formComprobante = document.getElementById('formComprobante');
+        const mensajeForm = document.getElementById('mensajeFormComprobante');
+        let alumnoActivoId = null;
 
-        // Función para abrir el modal y cargar los datos
-        window.abrirModalComprobantes = function(idAlumno) {
-            // Mostrar la tabla por defecto
-            vistaTabla.classList.remove('d-none');
-            vistaFormulario.classList.add('d-none');
-            modalFooter.classList.remove('d-none');
-            formIdAlumno.value = idAlumno;
-            
-            // Cargar datos
-            tablaBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
-            
+        // --- Carga de comprobantes en la tabla del modal ---
+        function cargarComprobantes(idAlumno) {
+            tablaBody.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
             fetch(`/comprobantes/alumno/${idAlumno}`)
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
                     tablaBody.innerHTML = '';
                     if (data.length === 0) {
-                        tablaBody.innerHTML = '<tr><td colspan="4" class="text-muted">No hay comprobantes para este alumno.</td></tr>';
+                        tablaBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay comprobantes para este alumno.</td></tr>';
                     } else {
                         data.forEach(comp => {
                             const tr = document.createElement('tr');
@@ -497,10 +497,13 @@
                                 <td>${comp.descripcion || '-'}</td>
                                 <td>
                                     <div class="d-flex justify-content-center gap-2">
-                                        <a href="/comprobantes/descargar/${comp.idComprobantePago}" class="btn btn-sm btn-outline-primary" title="Descargar PDF">
+                                        <a href="/comprobantes/descargar/${comp.idComprobantePago}"
+                                           class="btn btn-sm btn-outline-primary" title="Descargar PDF">
                                             <i class="bi bi-download"></i>
                                         </a>
-                                        <a href="/comprobantes/eliminar/${comp.idComprobantePago}" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="return confirm('\u00bfEliminar comprobante?');">
+                                        <a href="/comprobantes/eliminar/${comp.idComprobantePago}"
+                                           class="btn btn-sm btn-outline-danger" title="Eliminar"
+                                           onclick="return confirm('\u00bfEliminar comprobante?');">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </div>
@@ -510,27 +513,99 @@
                         });
                     }
                 })
-                .catch(error => {
-                    console.error('Error fetching comprobantes:', error);
-                    tablaBody.innerHTML = '<tr><td colspan="4" class="text-danger">Error al cargar los comprobantes.</td></tr>';
+                .catch(() => {
+                    tablaBody.innerHTML = '<tr><td colspan="4" class="text-danger text-center">Error al cargar los comprobantes.</td></tr>';
                 });
+        }
 
+        // --- Abrir modal (llamado desde th:onclick en cada fila) ---
+        window.abrirModalComprobantes = function(idAlumno) {
+            alumnoActivoId = idAlumno;
+            formIdAlumno.value = idAlumno;
+
+            // Resetear al estado inicial: tabla visible, formulario oculto
+            vistaTabla.classList.remove('d-none');
+            vistaFormulario.classList.add('d-none');
+            modalFooter.classList.remove('d-none');
+
+            // Limpiar el formulario
+            document.getElementById('formImporte').value = '';
+            document.getElementById('formAsunto').value = '';
+            mensajeForm.className = 'd-none mb-2';
+            mensajeForm.textContent = '';
+
+            cargarComprobantes(idAlumno);
             modalComprobantes.show();
         };
 
-        // Eventos para cambiar de vista en el modal
+        // --- Cambio de vista: mostrar formulario ---
         btnMostrarFormulario.addEventListener('click', function() {
             vistaTabla.classList.add('d-none');
             vistaFormulario.classList.remove('d-none');
-            modalFooter.classList.add('d-none'); // Ocultar el footer para que no se vea el botón cerrar doble
+            modalFooter.classList.add('d-none');
         });
 
+        // --- Cambio de vista: volver a la tabla ---
         btnOcultarFormulario.addEventListener('click', function() {
             vistaTabla.classList.remove('d-none');
             vistaFormulario.classList.add('d-none');
             modalFooter.classList.remove('d-none');
         });
+
+        // --- Enviar formulario via AJAX (SIN navegar fuera de la página) ---
+        formComprobante.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const btnGuardar = document.getElementById('btnGuardarComprobante');
+            btnGuardar.disabled = true;
+            btnGuardar.textContent = 'Guardando...';
+            mensajeForm.className = 'd-none mb-2';
+
+            const params = new URLSearchParams();
+            params.append('id_alumno', formIdAlumno.value);
+            params.append('importe', document.getElementById('formImporte').value);
+            params.append('asunto', document.getElementById('formAsunto').value);
+
+            fetch('/comprobantes/guardar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(r => {
+                // Intentar parsear como JSON siempre, incluso en respuestas 4xx/5xx
+                return r.text().then(text => {
+                    try {
+                        return { ok: r.ok, status: r.status, data: JSON.parse(text) };
+                    } catch (_) {
+                        // El cuerpo no es JSON (HTML de error de Spring)
+                        return { ok: false, status: r.status, data: { exito: false, mensaje: 'Error del servidor (' + r.status + '). Revisa la consola del servidor.' } };
+                    }
+                });
+            })
+            .then(({ ok, data }) => {
+                if (data.exito) {
+                    document.getElementById('formImporte').value = '';
+                    document.getElementById('formAsunto').value = '';
+                    vistaTabla.classList.remove('d-none');
+                    vistaFormulario.classList.add('d-none');
+                    modalFooter.classList.remove('d-none');
+                    cargarComprobantes(alumnoActivoId);
+                } else {
+                    mensajeForm.className = 'alert alert-danger mb-2';
+                    mensajeForm.textContent = data.mensaje || 'Error desconocido al guardar.';
+                }
+            })
+            .catch(err => {
+                mensajeForm.className = 'alert alert-danger mb-2';
+                mensajeForm.textContent = 'Error de red: ' + err.message;
+            })
+            .finally(() => {
+                btnGuardar.disabled = false;
+                btnGuardar.textContent = 'Guardar Comprobante';
+            });
+        });
     });
+
 </script>
 </body>
 </html>
