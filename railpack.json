@@ -2,5 +2,6 @@
   "$schema": "https://schema.railpack.com",
   "packages": {
     "java": "23"
-  }
+  },
+  "start": "java -jar target/control-contrapunto-0.0.1-SNAPSHOT.jar"
 }
