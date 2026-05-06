@@ -113,4 +113,30 @@ public class ClasesSalonesController {
         servicioClase.eliminar(id);
         return "redirect:/clases-salones?tab=clases";
     }
+
+    /**
+     * Actualiza los datos de una clase existente.
+     * Recibe el mismo DTO que guardar, más el campo idClase para identificar el registro.
+     */
+    @PostMapping("/clases/actualizar")
+    public String actualizarClase(@ModelAttribute("claseObj") Clase clase,
+                                  @RequestParam("idClase") Long idClase,
+                                  HttpSession session,
+                                  RedirectAttributes redirectAttrs) {
+        if (session.getAttribute("adminLogueado") == null) {
+            return "redirect:/login";
+        }
+        try {
+            if (clase.getTipoClase() == null) clase.setTipoClase(false);
+            servicioClase.actualizarClase(idClase, clase);
+            redirectAttrs.addFlashAttribute("claseExito", "Clase actualizada correctamente.");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            redirectAttrs.addFlashAttribute("claseError", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado al actualizar clase: " + e.getMessage());
+            redirectAttrs.addFlashAttribute("claseError", "Error inesperado al actualizar la clase.");
+        }
+        return "redirect:/clases-salones?tab=clases";
+    }
 }
+

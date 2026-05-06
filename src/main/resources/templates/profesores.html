@@ -238,6 +238,8 @@
                         <th>ID</th>
                         <th>Nombre</th>
                         <th>Sueldo Base</th>
+                        <th>Clases</th>
+                        <th>Sueldo Semanal</th>
                         <th>Métodos de contacto</th>
                         <th style="text-align:center;">Acciones</th>
                     </tr>
@@ -269,6 +271,29 @@
                             <span th:text="${profesor.sueldoBase != null ? '$' + #numbers.formatDecimal(profesor.sueldoBase, 1, 'COMMA', 2, 'POINT') : '$0.00'}">
                                 $0.00
                             </span>
+                        </td>
+
+                        <!-- Columna: Núm. Clases -->
+                        <td style="text-align:center;">
+                            <span class="badge" style="background:rgba(111,66,193,0.1); color:#6f42c1; font-size:12px; padding:5px 10px; border-radius:50px; font-weight:600;"
+                                  th:text="${clasesCount[profesor.idProfesor]} + ' clase(s)'">
+                                0 clase(s)
+                            </span>
+                        </td>
+
+                        <!-- Columna: Sueldo Semanal = sueldoBase x num_clases -->
+                        <td>
+                            <span style="font-weight:600; color:#198754;"
+                                  th:text="${profesor.sueldoBase != null && clasesCount[profesor.idProfesor] != null
+                                    ? '$' + #numbers.formatDecimal(profesor.sueldoBase * clasesCount[profesor.idProfesor], 1, 'COMMA', 2, 'POINT')
+                                    : '$0.00'}">
+                                $0.00
+                            </span>
+                            <div style="font-size:10px; color:#adb5bd; margin-top:1px;"
+                                 th:text="${clasesCount[profesor.idProfesor] != null
+                                    ? '(' + #numbers.formatDecimal(profesor.sueldoBase != null ? profesor.sueldoBase : 0, 1, 'COMMA', 2, 'POINT') + ' x ' + clasesCount[profesor.idProfesor] + ')'
+                                    : ''}">
+                            </div>
                         </td>
 
                         <!-- Columna: Métodos de contacto -->
@@ -323,7 +348,7 @@
 
                     <!-- Estado vacío si no hay profesores -->
                     <tr th:if="${#lists.isEmpty(profesores)}">
-                        <td colspan="6" class="empty-state">
+                        <td colspan="7" class="empty-state">
                             <i class="bi bi-person-badge"></i>
                             <strong style="font-size:15px; display:block; color:#6c757d;">
                                 Sin profesores registrados

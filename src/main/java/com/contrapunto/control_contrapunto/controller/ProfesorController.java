@@ -1,6 +1,7 @@
 package com.contrapunto.control_contrapunto.controller;
 
 import com.contrapunto.control_contrapunto.model.Profesor;
+import com.contrapunto.control_contrapunto.repository.ClaseRepository;
 import com.contrapunto.control_contrapunto.service.ServicioProfesor;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -10,13 +11,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
 public class ProfesorController {
 
     private final ServicioProfesor servicioProfesor;
+    private final ClaseRepository claseRepository;
 
     @GetMapping("/profesores")
     public String listarProfesores(HttpSession session, Model model) {
@@ -24,9 +28,18 @@ public class ProfesorController {
             return "redirect:/login";
         }
 
+        List<Profesor> profesores = servicioProfesor.listarTodos();
+
+        // Construir mapa: idProfesor -> cantidad de clases asignadas
+        Map<Long, Long> clasesCount = new HashMap<>();
+        for (Profesor p : profesores) {
+            clasesCount.put(p.getIdProfesor(), claseRepository.contarClasesPorProfesor(p.getIdProfesor()));
+        }
+
         model.addAttribute("usuarioActivo", session.getAttribute("adminLogueado"));
         model.addAttribute("activePage", "profesores");
-        model.addAttribute("profesores", servicioProfesor.listarTodos());
+        model.addAttribute("profesores", profesores);
+        model.addAttribute("clasesCount", clasesCount);
         return "profesores";
     }
 
