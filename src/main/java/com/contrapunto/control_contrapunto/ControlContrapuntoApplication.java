@@ -43,6 +43,9 @@ public class ControlContrapuntoApplication implements CommandLineRunner {
 				jdbcTemplate.execute("ALTER TABLE clase DROP COLUMN IF EXISTS materia_id_materia");
 				jdbcTemplate.execute("ALTER TABLE clase DROP COLUMN IF EXISTS dia_semana_id_dia_semana");
 
+                // Limpieza de columna duplicada en comprobante_pago
+                jdbcTemplate.execute("ALTER TABLE comprobante_pago DROP COLUMN IF EXISTS alumno_id_alumno CASCADE");
+
 				// Solución al conflicto de llaves foráneas: eliminar constraint vieja a tabla 'aula'
 				jdbcTemplate.execute("ALTER TABLE clase DROP CONSTRAINT IF EXISTS fkdnm532p2jrmlamven0a1725t9");
 			} catch (Exception ex) {
