@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
@@ -84,20 +85,23 @@ public class ClasesSalonesController {
     }
 
     @PostMapping("/clases/guardar")
-    public String guardarClase(@ModelAttribute("claseObj") Clase clase, HttpSession session) {
+    public String guardarClase(@ModelAttribute("claseObj") Clase clase,
+                               HttpSession session,
+                               RedirectAttributes redirectAttrs) {
         if (session.getAttribute("adminLogueado") == null) {
             return "redirect:/login";
         }
-        
-        // El @Scheduled se encarga de limpiar las reposiciones pasadas (ClaseCleanupService).
         try {
-            if (clase.getTipoClase() == null) clase.setTipoClase(false); // Seguro en caso de checkbox vacío
+            if (clase.getTipoClase() == null) clase.setTipoClase(false);
             servicioClase.agendarClase(clase);
+            redirectAttrs.addFlashAttribute("claseExito", "Clase registrada correctamente.");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            // Error de validación de negocio: mostrar al usuario
+            redirectAttrs.addFlashAttribute("claseError", e.getMessage());
         } catch (Exception e) {
-            System.err.println("Error al agendar clase: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error inesperado al agendar clase: " + e.getMessage());
+            redirectAttrs.addFlashAttribute("claseError", "Error inesperado al guardar la clase.");
         }
-        
         return "redirect:/clases-salones?tab=clases";
     }
 
