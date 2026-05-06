@@ -262,7 +262,6 @@
                         <th>Métodos de contacto</th>
                         <th>Último Pago</th>
                         <th>Próximo Pago</th>
-                        <th style="text-align:center;">Comprobantes</th>
                         <th style="text-align:center;">Acciones</th>
                     </tr>
                 </thead>
@@ -337,19 +336,18 @@
                             </span>
                         </td>
 
-                        <!-- Columna: Comprobantes (clip) -->
-                        <td style="text-align:center;">
-                            <button type="button"
-                                    class="btn-clip"
-                                    th:id="'btn-comprobante-' + ${alumno.idAlumno}"
-                                    title="Ver comprobantes de pago">
-                                <i class="bi bi-paperclip"></i>
-                            </button>
-                        </td>
-
                         <!-- Columna: Acciones -->
                         <td style="text-align:center;">
                             <div class="d-flex justify-content-center gap-2">
+                                <!-- Botón Comprobantes -->
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        title="Ver comprobantes de pago"
+                                        style="background-color:#198754; color:#fff; border-radius:6px;
+                                               padding:5px 10px; font-size:13px;"
+                                        th:onclick="'abrirModalComprobantes(' + ${alumno.idAlumno} + ')'">
+                                    <i class="bi bi-receipt"></i>
+                                </button>
                                 <!-- Botón Editar -->
                                 <a th:href="@{/alumnos/editar/{id}(id=${alumno.idAlumno})}"
                                    class="btn btn-sm"
@@ -376,7 +374,7 @@
 
                     <!-- Estado vacío si no hay alumnos -->
                     <tr th:if="${#lists.isEmpty(alumnos)}">
-                        <td colspan="7" class="empty-state">
+                        <td colspan="6" class="empty-state">
                             <i class="bi bi-people"></i>
                             <strong style="font-size:15px; display:block; color:#6c757d;">
                                 Sin alumnos registrados
@@ -398,7 +396,141 @@
     </div>
 </div>
 
+<!-- Modal de Comprobantes -->
+<div class="modal fade" id="modalComprobantes" tabindex="-1" aria-labelledby="modalComprobantesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalComprobantesLabel">Comprobantes de Pago</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Vista de Tabla -->
+        <div id="vistaTablaComprobantes">
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-primary" id="btnMostrarFormulario">Crear Comprobante</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center" id="tablaModalComprobantes">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Número (ID)</th>
+                            <th>Importe</th>
+                            <th>Asunto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Vista de Formulario -->
+        <div id="vistaFormularioComprobantes" class="d-none">
+            <form action="/comprobantes/guardar" method="post">
+                <input type="hidden" name="id_alumno" id="formIdAlumno">
+                
+                <div class="mb-3">
+                    <label for="formImporte" class="form-label">Monto</label>
+                    <input type="number" step="0.01" class="form-control" id="formImporte" name="importe" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="formAsunto" class="form-label">Asunto</label>
+                    <input type="text" class="form-control" id="formAsunto" name="asunto" required>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" id="btnOcultarFormulario">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar Comprobante</button>
+                </div>
+            </form>
+        </div>
+
+      </div>
+      <div class="modal-footer" id="modalFooterComprobantes">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const modalComprobantes = new bootstrap.Modal(document.getElementById('modalComprobantes'));
+        const vistaTabla = document.getElementById('vistaTablaComprobantes');
+        const vistaFormulario = document.getElementById('vistaFormularioComprobantes');
+        const modalFooter = document.getElementById('modalFooterComprobantes');
+        const btnMostrarFormulario = document.getElementById('btnMostrarFormulario');
+        const btnOcultarFormulario = document.getElementById('btnOcultarFormulario');
+        const formIdAlumno = document.getElementById('formIdAlumno');
+        const tablaBody = document.querySelector('#tablaModalComprobantes tbody');
+
+        // Función para abrir el modal y cargar los datos
+        window.abrirModalComprobantes = function(idAlumno) {
+            // Mostrar la tabla por defecto
+            vistaTabla.classList.remove('d-none');
+            vistaFormulario.classList.add('d-none');
+            modalFooter.classList.remove('d-none');
+            formIdAlumno.value = idAlumno;
+            
+            // Cargar datos
+            tablaBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+            
+            fetch(`/comprobantes/alumno/${idAlumno}`)
+                .then(response => response.json())
+                .then(data => {
+                    tablaBody.innerHTML = '';
+                    if (data.length === 0) {
+                        tablaBody.innerHTML = '<tr><td colspan="4" class="text-muted">No hay comprobantes para este alumno.</td></tr>';
+                    } else {
+                        data.forEach(comp => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${comp.idComprobantePago}</td>
+                                <td>$${Number(comp.importe).toFixed(2)}</td>
+                                <td>${comp.descripcion || '-'}</td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="/comprobantes/descargar/${comp.idComprobantePago}" class="btn btn-sm btn-outline-primary" title="Descargar PDF">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        <a href="/comprobantes/eliminar/${comp.idComprobantePago}" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="return confirm('\u00bfEliminar comprobante?');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            `;
+                            tablaBody.appendChild(tr);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching comprobantes:', error);
+                    tablaBody.innerHTML = '<tr><td colspan="4" class="text-danger">Error al cargar los comprobantes.</td></tr>';
+                });
+
+            modalComprobantes.show();
+        };
+
+        // Eventos para cambiar de vista en el modal
+        btnMostrarFormulario.addEventListener('click', function() {
+            vistaTabla.classList.add('d-none');
+            vistaFormulario.classList.remove('d-none');
+            modalFooter.classList.add('d-none'); // Ocultar el footer para que no se vea el botón cerrar doble
+        });
+
+        btnOcultarFormulario.addEventListener('click', function() {
+            vistaTabla.classList.remove('d-none');
+            vistaFormulario.classList.add('d-none');
+            modalFooter.classList.remove('d-none');
+        });
+    });
+</script>
 </body>
 </html>

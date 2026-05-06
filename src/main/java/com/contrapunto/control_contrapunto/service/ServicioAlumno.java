@@ -1,6 +1,7 @@
 package com.contrapunto.control_contrapunto.service;
 
 import com.contrapunto.control_contrapunto.model.Alumno;
+import com.contrapunto.control_contrapunto.model.ComprobantePago;
 import com.contrapunto.control_contrapunto.model.CorreoAlumno;
 import com.contrapunto.control_contrapunto.model.TelefonoAlumno;
 import com.contrapunto.control_contrapunto.repository.AlumnoRepository;
@@ -141,6 +142,12 @@ public class ServicioAlumno {
     public void eliminarAlumno(Long id) {
         Alumno alumno = obtenerPorId(id);
         if (alumno != null) {
+            // Eliminar comprobantes primero para evitar violación de FK en PostgreSQL
+            List<ComprobantePago> comprobantes =
+                    comprobantePagoRepository.findByAlumno_IdAlumno(id);
+            if (comprobantes != null && !comprobantes.isEmpty()) {
+                comprobantePagoRepository.deleteAll(comprobantes);
+            }
             if (alumno.getTelefonos() != null) {
                 telefonoAlumnoRepository.deleteAll(alumno.getTelefonos());
             }
