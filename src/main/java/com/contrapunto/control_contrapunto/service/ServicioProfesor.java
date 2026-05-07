@@ -12,6 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Servicio encargado de gestionar la lógica de negocio de los Profesores.
+ * Maneja el registro de sus datos laborales y su información de contacto.
+ */
 @Service
 @RequiredArgsConstructor
 public class ServicioProfesor {
@@ -20,23 +24,34 @@ public class ServicioProfesor {
     private final TelefonoProfesorRepository telefonoProfesorRepository;
     private final CorreoProfesorRepository correoProfesorRepository;
 
+    /**
+     * Obtiene la lista de todos los profesores registrados.
+     */
     public List<Profesor> listarTodos() {
         return profesorRepository.findAll();
     }
 
+    /**
+     * Busca un profesor por su identificador único.
+     */
     public Profesor obtenerPorId(Long id) {
         return profesorRepository.findById(id).orElse(null);
     }
 
+    /**
+     * Registra un nuevo profesor con su sueldo base y listas de contacto.
+     */
     @Transactional
     public void guardarProfesorConContactos(String nombre, Double sueldoBase, List<String> telefonos, List<String> correos) {
+        // Bloque: Creación del perfil laboral
         Profesor profesor = new Profesor();
         profesor.setNombreProfesor(nombre);
         profesor.setSueldoBase(sueldoBase);
         
-        // Guardar explícitamente el profesor primero para obtener su ID real
+        // Se guarda explícitamente el profesor primero para obtener su ID real para las relaciones
         profesor = profesorRepository.save(profesor);
 
+        // Bloque: Registro de Teléfonos de contacto
         if (telefonos != null) {
             for (String tel : telefonos) {
                 if (tel != null && !tel.trim().isEmpty()) {
@@ -48,6 +63,7 @@ public class ServicioProfesor {
             }
         }
 
+        // Bloque: Registro de Correos de contacto
         if (correos != null) {
             for (String email : correos) {
                 if (email != null && !email.trim().isEmpty()) {
@@ -60,13 +76,18 @@ public class ServicioProfesor {
         }
     }
 
+    /**
+     * Actualiza la información de un profesor y renueva sus contactos.
+     */
     @Transactional
     public void actualizarProfesor(Long id, String nombre, Double sueldoBase, List<String> telefonos, List<String> correos) {
+        // Bloque: Búsqueda del registro
         Profesor profesor = obtenerPorId(id);
         if (profesor != null) {
             profesor.setNombreProfesor(nombre);
             profesor.setSueldoBase(sueldoBase);
             
+            // Bloque: Limpieza de contactos actuales
             if (profesor.getTelefonos() != null) {
                 profesor.getTelefonos().clear();
             } else {
@@ -79,6 +100,7 @@ public class ServicioProfesor {
                 profesor.setCorreos(new java.util.ArrayList<>());
             }
 
+            // Bloque: Inserción de nuevos Teléfonos
             if (telefonos != null) {
                 for (String tel : telefonos) {
                     if (tel != null && !tel.trim().isEmpty()) {
@@ -90,6 +112,7 @@ public class ServicioProfesor {
                 }
             }
 
+            // Bloque: Inserción de nuevos Correos
             if (correos != null) {
                 for (String email : correos) {
                     if (email != null && !email.trim().isEmpty()) {
@@ -101,20 +124,27 @@ public class ServicioProfesor {
                 }
             }
 
+            // Guarda todos los cambios en cascada
             profesorRepository.save(profesor);
         }
     }
 
+    /**
+     * Elimina a un profesor y sus datos de contacto relacionados.
+     */
     @Transactional
     public void eliminarProfesor(Long id) {
         Profesor profesor = obtenerPorId(id);
         if (profesor != null) {
+            // Bloque: Eliminación manual de relaciones
             if (profesor.getTelefonos() != null) {
                 telefonoProfesorRepository.deleteAll(profesor.getTelefonos());
             }
             if (profesor.getCorreos() != null) {
                 correoProfesorRepository.deleteAll(profesor.getCorreos());
             }
+            
+            // Eliminación definitiva del perfil
             profesorRepository.delete(profesor);
         }
     }

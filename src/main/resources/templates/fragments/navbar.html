@@ -4,14 +4,15 @@
 
 <!--
   ============================================================
-  Fragmento: navbar.html
+  Fragmento: Barra de Navegación Lateral (Sidebar)
+  Centraliza el acceso a los módulos principales y el perfil de usuario.
   ============================================================
 -->
 <div th:fragment="sidebar">
 
-    <!-- ── Estilos específicos del sidebar responsivo ── -->
+    <!-- ── Estilos específicos para el comportamiento responsivo del Sidebar ── -->
     <style>
-        /* Comportamiento por defecto (Desktop) */
+        /* Comportamiento por defecto (Desktop): Sidebar fijo visible */
         #sidebar {
             transform: translateX(0);
         }
@@ -21,13 +22,13 @@
             pointer-events: none;
         }
 
-        /* Comportamiento en Móvil */
+        /* Comportamiento en Dispositivos Móviles (Pantalla < 992px) */
         @media (max-width: 991px) {
             #sidebar {
-                transform: translateX(-100%) !important;
+                transform: translateX(-100%) !important; /* Oculto fuera de pantalla */
             }
             #sidebar.show {
-                transform: translateX(0) !important;
+                transform: translateX(0) !important; /* Desplazado hacia adentro al activar */
             }
             #sidebarOverlay.show {
                 display: block !important;
@@ -37,11 +38,12 @@
         }
     </style>
 
-    <!-- ── Overlay oscuro (solo mobile) ── -->
+    <!-- Overlay oscuro: Cierra el menú al tocar fuera de él en dispositivos móviles -->
     <div id="sidebarOverlay" onclick="cerrarSidebar()"
          style="position:fixed; inset:0; background:rgba(0,0,0,0.5);
                 z-index:999; backdrop-filter:blur(2px); transition:opacity 0.3s;"></div>
 
+    <!-- Contenedor del Sidebar: Fondo con gradiente azul y diseño estilizado -->
     <nav id="sidebar"
          class="d-flex flex-column flex-shrink-0 p-0"
          style="width: 260px; min-height: 100vh;
@@ -50,7 +52,7 @@
                 box-shadow: 4px 0 20px rgba(0,0,0,0.3);
                 transition: transform 0.3s ease;">
 
-        <!-- ── Logo / Marca ── -->
+        <!-- ── Marca y Logo Institucional ── -->
         <div class="px-4 py-4 border-bottom border-secondary border-opacity-25">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
@@ -61,7 +63,7 @@
                     </div>
                     <div>
                         <span class="fw-bold text-white"
-                              style="font-size:15px; font-family:'Inter',sans-serif; letter-spacing:0.3px;">
+                               style="font-size:15px; font-family:'Inter',sans-serif; letter-spacing:0.3px;">
                             Control
                         </span><br>
                         <span style="font-size:11px; color:#FD7E14; font-family:'Inter',sans-serif;
@@ -70,7 +72,7 @@
                         </span>
                     </div>
                 </div>
-                <!-- Botón X para cerrar en mobile -->
+                <!-- Botón de cierre visible solo en resolución móvil -->
                 <button class="btn p-0 d-lg-none" onclick="cerrarSidebar()"
                         style="color:#8b9db5; font-size:24px; line-height:1; background:none; border:none; padding:4px;">
                     <i class="bi bi-x-lg"></i>
@@ -78,7 +80,7 @@
             </div>
         </div>
 
-        <!-- ── Usuario activo ── -->
+        <!-- ── Información del Usuario en Sesión ── -->
         <div class="px-4 py-3 border-bottom border-secondary border-opacity-25">
             <div class="d-flex align-items-center gap-2">
                 <div class="rounded-circle d-flex align-items-center justify-content-center"
@@ -91,23 +93,23 @@
                           th:text="${usuarioActivo != null ? usuarioActivo : 'Administrador'}">
                         Administrador
                     </span><br>
-                    <span style="font-size:11px; color:#8b9db5;">Admin</span>
+                    <span style="font-size:11px; color:#8b9db5;">Acceso Autorizado</span>
                 </div>
             </div>
         </div>
 
-        <!-- ── Menú de navegación: 3 ítems ── -->
+        <!-- ── Navegación Principal: Listado de Módulos ── -->
         <ul class="nav flex-column px-3 py-3 flex-grow-1" style="gap: 4px;">
 
             <li class="nav-item">
                 <span class="px-2 mb-1 d-block"
                       style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
                              color:#5a7396; font-family:'Inter',sans-serif;">
-                    Catálogos
+                    Módulos
                 </span>
             </li>
 
-            <!-- 1. Alumnos -->
+            <!-- Ítem: Alumnos -->
             <li class="nav-item">
                 <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
                    th:classappend="${activePage == 'alumnos'} ? 'active' : ''"
@@ -119,7 +121,7 @@
                 </a>
             </li>
 
-            <!-- 2. Profesores -->
+            <!-- Ítem: Profesores -->
             <li class="nav-item">
                 <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
                    th:classappend="${activePage == 'profesores'} ? 'active' : ''"
@@ -131,7 +133,7 @@
                 </a>
             </li>
 
-            <!-- 3. Clases/Salones (módulo unificado: Salones + Clases + Talleres) -->
+            <!-- Ítem: Clases y Salones (Panel Unificado) -->
             <li class="nav-item">
                 <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
                    th:classappend="${activePage == 'clases-salones' or activePage == 'salones' or activePage == 'clases'} ? 'active' : ''"
@@ -145,7 +147,7 @@
 
         </ul>
 
-        <!-- ── Cerrar sesión ── -->
+        <!-- ── Pie del Sidebar: Cerrar Sesión ── -->
         <div class="px-3 py-3 border-top border-secondary border-opacity-25">
             <a th:href="@{/logout}"
                class="nav-link sidebar-link-logout rounded-3 d-flex align-items-center gap-3 px-3 py-2"
@@ -157,7 +159,7 @@
 
     </nav>
 
-    <!-- Script del sidebar -->
+    <!-- JavaScript para el control manual del Sidebar en pantallas pequeñas -->
     <script>
         function abrirSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -173,7 +175,6 @@
         }
     </script>
 </div>
-
 
 </body>
 </html>

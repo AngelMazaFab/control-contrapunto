@@ -12,24 +12,40 @@ import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+/**
+ * Servicio dedicado a la generación de documentos PDF.
+ * Utiliza la librería OpenPDF (fork de iText) para dibujar los comprobantes de pago.
+ */
 @Service
 public class ComprobantePdfService {
 
+    // Constantes de estilo visual corporativo
     private static final Color ORANGE_HEADER = new Color(244, 140, 91); // #F48C5B
     private static final Color LIGHT_RED = new Color(220, 53, 69); // PAGADO color
 
+    /**
+     * Construye un archivo PDF en memoria a partir de los datos de un comprobante.
+     * 
+     * @param comprobante La entidad que contiene los datos de la transacción.
+     * @return Arreglo de bytes que representa el archivo PDF binario.
+     */
     public byte[] generarPdf(ComprobantePago comprobante) {
+        // Bloque: Inicialización del Flujo
+        // ByteArrayOutputStream permite escribir el archivo en memoria sin tocar el disco duro
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            // Se configura el documento con tamaño A4 y márgenes de 50 puntos
             Document document = new Document(PageSize.A4, 50, 50, 50, 50);
             PdfWriter writer = PdfWriter.getInstance(document, baos);
             
-            // Evento para el pie de página
+            // Bloque: Configuración de Pie de Página
+            // Se inyecta un evento que se dispara automáticamente al final de cada página
             FooterEvent event = new FooterEvent();
             writer.setPageEvent(event);
             
+            // Se abre el documento para comenzar a escribir en él
             document.open();
 
-            // Fuentes
+            // Bloque: Definición de Tipografía
             Font fontTitle = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, Color.BLACK);
             Font fontDate = FontFactory.getFont(FontFactory.HELVETICA, 12, Color.DARK_GRAY);
             Font fontNormalBold = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.BLACK);
@@ -39,12 +55,12 @@ public class ComprobantePdfService {
             Font fontTotalValue = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, Color.BLACK);
             Font fontPagado = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, LIGHT_RED);
 
-            // 1. Encabezado (Logo + Título y Fecha)
+            // Bloque: 1. Encabezado (Logo + Título y Fecha)
             PdfPTable headerTable = new PdfPTable(2);
             headerTable.setWidthPercentage(100);
             headerTable.setWidths(new float[]{1f, 2f});
             
-            // Celda del Logo
+            // Celda del Logo: Intenta cargar la imagen del logo desde los recursos estáticos
             PdfPCell logoCell = new PdfPCell();
             logoCell.setBorder(Rectangle.NO_BORDER);
             try {
@@ -55,7 +71,7 @@ public class ComprobantePdfService {
                     logoCell.addElement(logo);
                 }
             } catch (Exception e) {
-                // Si la imagen no existe, ignorar y no romper el sistema
+                // Si la imagen no existe o falla, se ignora para no quebrar la generación del PDF
             }
             headerTable.addCell(logoCell);
             
@@ -69,6 +85,7 @@ public class ComprobantePdfService {
             title.setAlignment(Element.ALIGN_RIGHT);
             titleCell.addElement(title);
             
+            // Formatea la fecha al estilo "25 - MAYO - 2026"
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d - MMMM - yyyy", new Locale("es", "MX"));
             String formattedDate = comprobante.getFechaPago().format(formatter).toUpperCase();
             Paragraph date = new Paragraph(formattedDate, fontDate);
@@ -78,22 +95,23 @@ public class ComprobantePdfService {
             headerTable.addCell(titleCell);
             document.add(headerTable);
             
-            document.add(new Paragraph("\n\n"));
+            document.add(new Paragraph("\n\n")); // Espaciador
 
-            // 2. Datos del Cliente
+            // Bloque: 2. Datos del Cliente
             String nombreAlumno = comprobante.getAlumno().getNombreAlumno().toUpperCase();
             Paragraph clientData = new Paragraph();
             clientData.add(new Chunk("NOMBRE: ", fontNormalBold));
             clientData.add(new Chunk(nombreAlumno, fontNormal));
             document.add(clientData);
             
-            document.add(new Paragraph("\n\n"));
+            document.add(new Paragraph("\n\n")); // Espaciador
 
-            // 3. Tabla de Detalles
+            // Bloque: 3. Tabla de Detalles del Pago
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
             table.setWidths(new float[]{3f, 1f});
             
+            // Cabeceras de la tabla
             PdfPCell h1 = new PdfPCell(new Phrase("DESCRIPCIÓN", fontTableHeader));
             h1.setBackgroundColor(ORANGE_HEADER);
             h1.setPadding(8);
@@ -105,12 +123,13 @@ public class ComprobantePdfService {
             h2.setHorizontalAlignment(Element.ALIGN_RIGHT);
             table.addCell(h2);
             
-            // Fila con los datos
+            // Fila con los datos reales del comprobante
             PdfPCell c1 = new PdfPCell(new Phrase(comprobante.getDescripcion(), fontNormal));
             c1.setPadding(8);
             c1.setBorderColor(Color.LIGHT_GRAY);
             table.addCell(c1);
             
+            // Formatear el importe como moneda ($ 1,000.00)
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("es", "MX"));
             String montoStr = currencyFormat.format(comprobante.getImporte());
             
@@ -122,7 +141,7 @@ public class ComprobantePdfService {
             
             document.add(table);
             
-            // 4. Totales y Sello
+            // Bloque: 4. Fila de Totales
             PdfPTable totalsTable = new PdfPTable(2);
             totalsTable.setWidthPercentage(100);
             totalsTable.setWidths(new float[]{3f, 1f});
@@ -130,8 +149,9 @@ public class ComprobantePdfService {
             
             PdfPCell emptyCell = new PdfPCell();
             emptyCell.setBorder(Rectangle.NO_BORDER);
-            totalsTable.addCell(emptyCell);
+            totalsTable.addCell(emptyCell); // Celda vacía para alinear el total a la derecha
             
+            // Caja específica para el TOTAL
             PdfPTable totalBox = new PdfPTable(2);
             totalBox.setWidthPercentage(100);
             totalBox.setWidths(new float[]{1f, 1.5f});
@@ -156,19 +176,24 @@ public class ComprobantePdfService {
             
             document.add(totalsTable);
             
-            document.add(new Paragraph("\n\n"));
+            document.add(new Paragraph("\n\n")); // Espaciador final
             
+            // Bloque: 5. Sello de "PAGADO"
             Paragraph stamp = new Paragraph("PAGADO", fontPagado);
             stamp.setAlignment(Element.ALIGN_RIGHT);
             document.add(stamp);
 
+            // Bloque: Cierre y Exportación
             document.close();
-            return baos.toByteArray();
+            return baos.toByteArray(); // Extrae el archivo en forma de bytes
         } catch (Exception e) {
             throw new RuntimeException("Error al generar el comprobante PDF", e);
         }
     }
 
+    /**
+     * Clase interna encargada de inyectar el texto del pie de página automáticamente.
+     */
     class FooterEvent extends PdfPageEventHelper {
         Font fontFooter = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.DARK_GRAY);
 
@@ -176,6 +201,7 @@ public class ComprobantePdfService {
         public void onEndPage(PdfWriter writer, Document document) {
             PdfContentByte cb = writer.getDirectContent();
             Phrase footer = new Phrase("WhatsApp 74 72 19 93 20\nEje Central 4, Col. Burócratas, Chilpancingo, Gro.", fontFooter);
+            // Posiciona el texto del pie de página a 20 puntos del margen inferior
             ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
                     footer,
                     document.left(),
