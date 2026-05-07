@@ -5,10 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Control Contrapunto</title>
-    <!-- Fuente Inter para una estética moderna y limpia -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilos base: Centrado absoluto del contenedor de login */
         body {
             margin: 0;
             padding: 0;
@@ -31,7 +29,6 @@
             box-sizing: border-box;
         }
 
-        /* Bloque: Identidad Visual (Logo y Texto) */
         .logo-wrapper {
             display: flex;
             justify-content: center;
@@ -55,13 +52,12 @@
             margin: 0;
         }
 
-        /* Bloque: Formulario y Campos de entrada */
         .form-input {
             width: 100%;
             padding: 15px 20px;
             margin-bottom: 25px;
             border: 1px solid #FD7E14;
-            /* Borde naranja primario institucional */
+            /* Borde naranja primario */
             border-radius: 6px;
             font-size: 16px;
             color: #495057;
@@ -88,14 +84,13 @@
             cursor: pointer;
             margin-top: 10px;
             width: auto;
-            /* Para que el botón sea pequeño y centrado como en el diseño original */
+            /* Para que el botón sea pequeño y centrado como en tu diseño */
         }
 
         .btn-login:hover {
             background-color: #e06c00;
         }
 
-        /* Mensaje de error para credenciales inválidas */
         .error-msg {
             color: #DC3545;
             margin-bottom: 20px;
@@ -109,8 +104,6 @@
             flex-direction: column;
             align-items: center;
         }
-        
-        /* Ajustes para dispositivos móviles */
         @media (max-width: 480px) {
             .login-container {
                 padding: 16px;
@@ -124,17 +117,14 @@
 <body>
     <div class="login-container">
 
-        <!-- Logo musical con glifos decorativos -->
         <div class="logo-wrapper">
             <span class="music-icon">&#119070;</span>
             <h1 class="logo-text">Control<br>Contrapunto</h1>
             <span class="music-icon">&#9835;</span>
         </div>
 
-        <!-- Alerta de error si el parámetro 'error' está presente en la URL -->
         <div th:if="${param.error}" class="error-msg">Usuario o contraseña incorrectos.</div>
 
-        <!-- Formulario de autenticación que apunta al endpoint /login de Spring Security/Custom Controller -->
         <form th:action="@{/login}" method="post" class="form-wrapper">
             <input type="text" name="usuario" class="form-input" placeholder="Usuario" required>
             <input type="password" name="contrasena" class="form-input" placeholder="Contraseña" required>
