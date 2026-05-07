@@ -4,7 +4,7 @@ import com.contrapunto.control_contrapunto.model.Alumno;
 import com.contrapunto.control_contrapunto.model.ComprobantePago;
 import com.contrapunto.control_contrapunto.repository.AlumnoRepository;
 import com.contrapunto.control_contrapunto.repository.ComprobantePagoRepository;
-import com.contrapunto.control_contrapunto.service.ComprobantePdfService;
+import com.contrapunto.control_contrapunto.service.ServicioComprobantePdf;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,7 +31,7 @@ public class ComprobanteController {
 
     private final ComprobantePagoRepository comprobantePagoRepository;
     private final AlumnoRepository alumnoRepository;
-    private final ComprobantePdfService comprobantePdfService;
+    private final ServicioComprobantePdf servicioComprobantePdf;
 
     /**
      * Devuelve JSON con la lista de comprobantes de un alumno específico.
@@ -155,7 +155,7 @@ public class ComprobanteController {
 
         // Bloque: Generación del documento
         // Llama al servicio dedicado que construye la estructura visual del PDF
-        byte[] pdfBytes = comprobantePdfService.generarPdf(comprobante);
+        byte[] pdfBytes = servicioComprobantePdf.generarPdf(comprobante);
 
         // Bloque: Configuración del nombre de archivo
         // Reemplaza espacios por guiones bajos para que la descarga sea limpia en el navegador

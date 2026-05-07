@@ -2,7 +2,7 @@ package com.contrapunto.control_contrapunto.controller;
 
 import com.contrapunto.control_contrapunto.model.Salon;
 import com.contrapunto.control_contrapunto.model.Clase;
-import com.contrapunto.control_contrapunto.service.SalonService;
+import com.contrapunto.control_contrapunto.service.ServicioSalon;
 import com.contrapunto.control_contrapunto.service.ServicioClase;
 import com.contrapunto.control_contrapunto.service.ServicioProfesor;
 import com.contrapunto.control_contrapunto.service.ServicioAlumno;
@@ -25,14 +25,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ClasesSalonesController {
 
     // Dependencias inyectadas para interactuar con la lógica de negocio y repositorios
-    private final SalonService salonService;
+    private final ServicioSalon servicioSalon;
     private final ServicioClase servicioClase;
     private final ServicioProfesor servicioProfesor;
     private final ServicioAlumno servicioAlumno;
     private final MateriaRepository materiaRepository;
     private final DiaSemanaRepository diaSemanaRepository;
     private final InasistenciaRepository inasistenciaRepository;
-    private final com.contrapunto.control_contrapunto.service.ClaseCleanupService claseCleanupService;
+    private final com.contrapunto.control_contrapunto.service.ServicioClaseCleanup servicioClaseCleanup;
 
     /**
      * Muestra la vista principal que contiene las pestañas de "Clases" y "Salones".
@@ -52,7 +52,7 @@ public class ClasesSalonesController {
         // Bloque: Limpieza programada manual
         // Garantiza que si el servidor estuvo apagado a medianoche,
         // al cargar la vista se eliminen las clases expiradas (ej. reposiciones antiguas) antes de mostrarlas.
-        claseCleanupService.limpiarReposicionesAntiguas();
+        servicioClaseCleanup.limpiarReposicionesAntiguas();
 
         // Bloque: Estado de la vista (Tabs)
         model.addAttribute("usuarioActivo", admin);
@@ -60,7 +60,7 @@ public class ClasesSalonesController {
         model.addAttribute("tabActivo", tab); // Define qué pestaña (salones o clases) se debe mostrar abierta
 
         // Bloque: Datos para gestión de Salones
-        model.addAttribute("salones", salonService.listarTodos());
+        model.addAttribute("salones", servicioSalon.listarTodos());
         model.addAttribute("salonObj", new Salon());
 
         // Bloque: Diccionarios/Catálogos para el modal de agendar Clase
@@ -69,7 +69,7 @@ public class ClasesSalonesController {
         model.addAttribute("listAlumnos", servicioAlumno.listarTodos());
         model.addAttribute("listMaterias", materiaRepository.findAll());
         model.addAttribute("listDiasSemana", diaSemanaRepository.findAll());
-        model.addAttribute("listSalones", salonService.listarTodos());
+        model.addAttribute("listSalones", servicioSalon.listarTodos());
         model.addAttribute("listInasistencias", inasistenciaRepository.findInasistenciasPendientes());
         
         // Datos principales de clases registradas
@@ -90,7 +90,7 @@ public class ClasesSalonesController {
         }
         
         // Delega la persistencia al servicio de salones
-        salonService.guardar(salon);
+        servicioSalon.guardar(salon);
         
         // Retorna a la vista principal indicando que se debe abrir la pestaña de "salones"
         return "redirect:/clases-salones?tab=salones";
@@ -107,7 +107,7 @@ public class ClasesSalonesController {
         }
         
         // Ejecuta la eliminación física del salón
-        salonService.eliminar(id);
+        servicioSalon.eliminar(id);
         
         return "redirect:/clases-salones?tab=salones";
     }
