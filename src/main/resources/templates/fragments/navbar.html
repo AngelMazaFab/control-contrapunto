@@ -5,112 +5,175 @@
 <!--
   ============================================================
   Fragmento: navbar.html
-  Uso: th:replace="~{fragments/navbar :: sidebar}"
-  Menú principal (3 ítems): Alumnos | Profesores | Clases/Salones
   ============================================================
 -->
-<nav th:fragment="sidebar" id="sidebar"
-     class="d-flex flex-column flex-shrink-0 p-0"
-     style="width: 260px; min-height: 100vh;
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-            position: fixed; left: 0; top: 0; z-index: 1000;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.3);">
+<div th:fragment="sidebar">
 
-    <!-- ── Logo / Marca ── -->
-    <div class="px-4 py-4 border-bottom border-secondary border-opacity-25">
-        <div class="d-flex align-items-center gap-2">
-            <div class="rounded-circle d-flex align-items-center justify-content-center"
-                 style="width:40px; height:40px;
-                        background: linear-gradient(135deg, #FD7E14, #e8651a); flex-shrink:0;">
-                <i class="bi bi-music-note-beamed text-white" style="font-size:18px;"></i>
+    <!-- ── Estilos específicos del sidebar responsivo ── -->
+    <style>
+        /* Comportamiento por defecto (Desktop) */
+        #sidebar {
+            transform: translateX(0);
+        }
+        #sidebarOverlay {
+            display: none !important;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Comportamiento en Móvil */
+        @media (max-width: 991px) {
+            #sidebar {
+                transform: translateX(-100%) !important;
+            }
+            #sidebar.show {
+                transform: translateX(0) !important;
+            }
+            #sidebarOverlay.show {
+                display: block !important;
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+    </style>
+
+    <!-- ── Overlay oscuro (solo mobile) ── -->
+    <div id="sidebarOverlay" onclick="cerrarSidebar()"
+         style="position:fixed; inset:0; background:rgba(0,0,0,0.5);
+                z-index:999; backdrop-filter:blur(2px); transition:opacity 0.3s;"></div>
+
+    <nav id="sidebar"
+         class="d-flex flex-column flex-shrink-0 p-0"
+         style="width: 260px; min-height: 100vh;
+                background: linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+                position: fixed; left: 0; top: 0; z-index: 1000;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+                transition: transform 0.3s ease;">
+
+        <!-- ── Logo / Marca ── -->
+        <div class="px-4 py-4 border-bottom border-secondary border-opacity-25">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:40px; height:40px;
+                                background: linear-gradient(135deg, #FD7E14, #e8651a); flex-shrink:0;">
+                        <i class="bi bi-music-note-beamed text-white" style="font-size:18px;"></i>
+                    </div>
+                    <div>
+                        <span class="fw-bold text-white"
+                              style="font-size:15px; font-family:'Inter',sans-serif; letter-spacing:0.3px;">
+                            Control
+                        </span><br>
+                        <span style="font-size:11px; color:#FD7E14; font-family:'Inter',sans-serif;
+                                     letter-spacing:1px; text-transform:uppercase;">
+                            Contrapunto
+                        </span>
+                    </div>
+                </div>
+                <!-- Botón X para cerrar en mobile -->
+                <button class="btn p-0 d-lg-none" onclick="cerrarSidebar()"
+                        style="color:#8b9db5; font-size:24px; line-height:1; background:none; border:none; padding:4px;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
-            <div>
-                <span class="fw-bold text-white"
-                      style="font-size:15px; font-family:'Inter',sans-serif; letter-spacing:0.3px;">
-                    Control
-                </span><br>
-                <span style="font-size:11px; color:#FD7E14; font-family:'Inter',sans-serif;
-                             letter-spacing:1px; text-transform:uppercase;">
-                    Contrapunto
+        </div>
+
+        <!-- ── Usuario activo ── -->
+        <div class="px-4 py-3 border-bottom border-secondary border-opacity-25">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                     style="width:34px; height:34px; flex-shrink:0;
+                            background: rgba(253,126,20,0.2); border: 1px solid rgba(253,126,20,0.4);">
+                    <i class="bi bi-person-fill" style="color:#FD7E14; font-size:16px;"></i>
+                </div>
+                <div>
+                    <span class="text-white" style="font-size:13px; font-family:'Inter',sans-serif;"
+                          th:text="${usuarioActivo != null ? usuarioActivo : 'Administrador'}">
+                        Administrador
+                    </span><br>
+                    <span style="font-size:11px; color:#8b9db5;">Admin</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Menú de navegación ── -->
+        <ul class="nav flex-column px-3 py-3 flex-grow-1" style="gap: 4px;">
+
+            <li class="nav-item">
+                <span class="px-2 mb-1 d-block"
+                      style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+                             color:#5a7396; font-family:'Inter',sans-serif;">
+                    Catálogos
                 </span>
-            </div>
+            </li>
+
+            <!-- 1. Alumnos -->
+            <li class="nav-item">
+                <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
+                   th:classappend="${activePage == 'alumnos'} ? 'active' : ''"
+                   th:href="@{/alumnos}"
+                   id="nav-alumnos"
+                   onclick="cerrarSidebar()">
+                    <i class="bi bi-people-fill" style="width:18px;"></i>
+                    <span>Alumnos</span>
+                </a>
+            </li>
+
+            <!-- 2. Profesores -->
+            <li class="nav-item">
+                <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
+                   th:classappend="${activePage == 'profesores'} ? 'active' : ''"
+                   th:href="@{/profesores}"
+                   id="nav-profesores"
+                   onclick="cerrarSidebar()">
+                    <i class="bi bi-person-badge-fill" style="width:18px;"></i>
+                    <span>Profesores</span>
+                </a>
+            </li>
+
+            <!-- 3. Clases/Salones -->
+            <li class="nav-item">
+                <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
+                   th:classappend="${activePage == 'clases-salones' or activePage == 'salones' or activePage == 'clases'} ? 'active' : ''"
+                   th:href="@{/clases-salones}"
+                   id="nav-clases-salones"
+                   onclick="cerrarSidebar()">
+                    <i class="bi bi-layout-split" style="width:18px;"></i>
+                    <span>Clases/Salones</span>
+                </a>
+            </li>
+
+        </ul>
+
+        <!-- ── Cerrar sesión ── -->
+        <div class="px-3 py-3 border-top border-secondary border-opacity-25">
+            <a th:href="@{/logout}"
+               class="nav-link sidebar-link-logout rounded-3 d-flex align-items-center gap-3 px-3 py-2"
+               id="btn-logout">
+                <i class="bi bi-box-arrow-left" style="width:18px;"></i>
+                <span>Cerrar sesión</span>
+            </a>
         </div>
-    </div>
 
-    <!-- ── Usuario activo ── -->
-    <div class="px-4 py-3 border-bottom border-secondary border-opacity-25">
-        <div class="d-flex align-items-center gap-2">
-            <div class="rounded-circle d-flex align-items-center justify-content-center"
-                 style="width:34px; height:34px; flex-shrink:0;
-                        background: rgba(253,126,20,0.2); border: 1px solid rgba(253,126,20,0.4);">
-                <i class="bi bi-person-fill" style="color:#FD7E14; font-size:16px;"></i>
-            </div>
-            <div>
-                <span class="text-white" style="font-size:13px; font-family:'Inter',sans-serif;"
-                      th:text="${usuarioActivo != null ? usuarioActivo : 'Administrador'}">
-                    Administrador
-                </span><br>
-                <span style="font-size:11px; color:#8b9db5;">Admin</span>
-            </div>
-        </div>
-    </div>
+    </nav>
 
-    <!-- ── Menú de navegación: 3 ítems ── -->
-    <ul class="nav flex-column px-3 py-3 flex-grow-1" style="gap: 4px;">
+    <!-- Script del sidebar -->
+    <script>
+        function abrirSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) sidebar.classList.add('show');
+            if (overlay) overlay.classList.add('show');
+        }
+        function cerrarSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) sidebar.classList.remove('show');
+            if (overlay) overlay.classList.remove('show');
+        }
+    </script>
+</div>
 
-        <li class="nav-item">
-            <span class="px-2 mb-1 d-block"
-                  style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
-                         color:#5a7396; font-family:'Inter',sans-serif;">
-                Catálogos
-            </span>
-        </li>
 
-        <!-- 1. Alumnos -->
-        <li class="nav-item">
-            <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
-               th:classappend="${activePage == 'alumnos'} ? 'active' : ''"
-               th:href="@{/alumnos}"
-               id="nav-alumnos">
-                <i class="bi bi-people-fill" style="width:18px;"></i>
-                <span>Alumnos</span>
-            </a>
-        </li>
-
-        <!-- 2. Profesores -->
-        <li class="nav-item">
-            <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
-               th:classappend="${activePage == 'profesores'} ? 'active' : ''"
-               th:href="@{/profesores}"
-               id="nav-profesores">
-                <i class="bi bi-person-badge-fill" style="width:18px;"></i>
-                <span>Profesores</span>
-            </a>
-        </li>
-
-        <!-- 3. Clases/Salones (módulo unificado: Salones + Clases + Talleres) -->
-        <li class="nav-item">
-            <a class="nav-link sidebar-link rounded-3 d-flex align-items-center gap-3"
-               th:classappend="${activePage == 'clases-salones' or activePage == 'salones' or activePage == 'clases'} ? 'active' : ''"
-               th:href="@{/clases-salones}"
-               id="nav-clases-salones">
-                <i class="bi bi-layout-split" style="width:18px;"></i>
-                <span>Clases/Salones</span>
-            </a>
-        </li>
-
-    </ul>
-
-    <!-- ── Cerrar sesión ── -->
-    <div class="px-3 py-3 border-top border-secondary border-opacity-25">
-        <a th:href="@{/logout}"
-           class="nav-link sidebar-link-logout rounded-3 d-flex align-items-center gap-3 px-3 py-2"
-           id="btn-logout">
-            <i class="bi bi-box-arrow-left" style="width:18px;"></i>
-            <span>Cerrar sesión</span>
-        </a>
-    </div>
-
-</nav>
 </body>
 </html>

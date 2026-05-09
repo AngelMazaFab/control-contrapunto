@@ -8,36 +8,31 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Servicio encargado de la gestión de Salones (aulas).
+ */
 @Service
 @RequiredArgsConstructor
-public class SalonService {
+public class ServicioSalon {
 
     private final SalonRepository salonRepository;
-    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
-    @jakarta.annotation.PostConstruct
-    public void corregirEsquemaBaseDatos() {
-        try {
-            // Elimina la columna capacidad de la BD para que no salte el error de NOT NULL
-            jdbcTemplate.execute("ALTER TABLE salones DROP COLUMN IF EXISTS capacidad;");
-            System.out.println("[SalonService] Columna 'capacidad' eliminada de la base de datos.");
-        } catch (Exception e) {
-            System.err.println("[SalonService] Nota: No se pudo modificar el esquema (es normal si no existe la tabla aún): " + e.getMessage());
-        }
-    }
-
+    /** Lista todos los salones registrados. */
     public List<Salon> listarTodos() {
         return salonRepository.findAll();
     }
 
+    /** Guarda un salón. */
     public void guardar(Salon salon) {
         salonRepository.save(salon);
     }
 
+    /** Busca un salón por ID. */
     public Optional<Salon> buscarPorId(Long id) {
         return salonRepository.findById(id);
     }
 
+    /** Elimina un salón. */
     public void eliminar(Long id) {
         salonRepository.deleteById(id);
     }

@@ -12,18 +12,21 @@ import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+/**
+ * Servicio para la generación de comprobantes en PDF.
+ */
 @Service
-public class ComprobantePdfService {
+public class ServicioComprobantePdf {
 
-    private static final Color ORANGE_HEADER = new Color(244, 140, 91); // #F48C5B
-    private static final Color LIGHT_RED = new Color(220, 53, 69); // PAGADO color
+    private static final Color ORANGE_HEADER = new Color(244, 140, 91);
+    private static final Color LIGHT_RED = new Color(220, 53, 69);
 
+    /** Genera el archivo PDF del comprobante. */
     public byte[] generarPdf(ComprobantePago comprobante) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4, 50, 50, 50, 50);
             PdfWriter writer = PdfWriter.getInstance(document, baos);
             
-            // Evento para el pie de página
             FooterEvent event = new FooterEvent();
             writer.setPageEvent(event);
             
@@ -39,12 +42,11 @@ public class ComprobantePdfService {
             Font fontTotalValue = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, Color.BLACK);
             Font fontPagado = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, LIGHT_RED);
 
-            // 1. Encabezado (Logo + Título y Fecha)
+            // 1. Encabezado
             PdfPTable headerTable = new PdfPTable(2);
             headerTable.setWidthPercentage(100);
             headerTable.setWidths(new float[]{1f, 2f});
             
-            // Celda del Logo
             PdfPCell logoCell = new PdfPCell();
             logoCell.setBorder(Rectangle.NO_BORDER);
             try {
@@ -54,12 +56,9 @@ public class ComprobantePdfService {
                     logo.scaleToFit(150, 100);
                     logoCell.addElement(logo);
                 }
-            } catch (Exception e) {
-                // Si la imagen no existe, ignorar y no romper el sistema
-            }
+            } catch (Exception e) {}
             headerTable.addCell(logoCell);
             
-            // Celda de Título y Fecha
             PdfPCell titleCell = new PdfPCell();
             titleCell.setBorder(Rectangle.NO_BORDER);
             titleCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -77,19 +76,17 @@ public class ComprobantePdfService {
             
             headerTable.addCell(titleCell);
             document.add(headerTable);
-            
             document.add(new Paragraph("\n\n"));
 
-            // 2. Datos del Cliente
+            // 2. Datos Alumno
             String nombreAlumno = comprobante.getAlumno().getNombreAlumno().toUpperCase();
             Paragraph clientData = new Paragraph();
             clientData.add(new Chunk("NOMBRE: ", fontNormalBold));
             clientData.add(new Chunk(nombreAlumno, fontNormal));
             document.add(clientData);
-            
             document.add(new Paragraph("\n\n"));
 
-            // 3. Tabla de Detalles
+            // 3. Tabla Detalles
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
             table.setWidths(new float[]{3f, 1f});
@@ -105,7 +102,6 @@ public class ComprobantePdfService {
             h2.setHorizontalAlignment(Element.ALIGN_RIGHT);
             table.addCell(h2);
             
-            // Fila con los datos
             PdfPCell c1 = new PdfPCell(new Phrase(comprobante.getDescripcion(), fontNormal));
             c1.setPadding(8);
             c1.setBorderColor(Color.LIGHT_GRAY);
@@ -122,11 +118,10 @@ public class ComprobantePdfService {
             
             document.add(table);
             
-            // 4. Totales y Sello
+            // 4. Totales
             PdfPTable totalsTable = new PdfPTable(2);
             totalsTable.setWidthPercentage(100);
             totalsTable.setWidths(new float[]{3f, 1f});
-            totalsTable.setSpacingBefore(0);
             
             PdfPCell emptyCell = new PdfPCell();
             emptyCell.setBorder(Rectangle.NO_BORDER);
@@ -151,13 +146,12 @@ public class ComprobantePdfService {
             
             PdfPCell totalContainer = new PdfPCell(totalBox);
             totalContainer.setBorder(Rectangle.NO_BORDER);
-            totalContainer.setPadding(0);
             totalsTable.addCell(totalContainer);
             
             document.add(totalsTable);
-            
             document.add(new Paragraph("\n\n"));
             
+            // 5. Sello Pagado
             Paragraph stamp = new Paragraph("PAGADO", fontPagado);
             stamp.setAlignment(Element.ALIGN_RIGHT);
             document.add(stamp);
@@ -165,10 +159,11 @@ public class ComprobantePdfService {
             document.close();
             return baos.toByteArray();
         } catch (Exception e) {
-            throw new RuntimeException("Error al generar el comprobante PDF", e);
+            throw new RuntimeException("Error al generar PDF", e);
         }
     }
 
+    /** Evento para inyectar pie de página. */
     class FooterEvent extends PdfPageEventHelper {
         Font fontFooter = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.DARK_GRAY);
 
@@ -176,10 +171,7 @@ public class ComprobantePdfService {
         public void onEndPage(PdfWriter writer, Document document) {
             PdfContentByte cb = writer.getDirectContent();
             Phrase footer = new Phrase("WhatsApp 74 72 19 93 20\nEje Central 4, Col. Burócratas, Chilpancingo, Gro.", fontFooter);
-            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
-                    footer,
-                    document.left(),
-                    document.bottom() - 20, 0);
+            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT, footer, document.left(), document.bottom() - 20, 0);
         }
     }
 }
