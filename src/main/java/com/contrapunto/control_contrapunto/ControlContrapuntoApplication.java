@@ -49,9 +49,11 @@ public class ControlContrapuntoApplication implements CommandLineRunner {
 
 			// Prueba de conexión básica
 			jdbcTemplate.execute("SELECT 1");
-			System.out.println("✅ Conexión exitosa y esquema purgado.");
+			System.out.println("✅ ¡ÉXITO! Sistema conectado y base de datos sincronizada.");
+			System.out.println("URL local: http://localhost:8080");
 		} catch (Exception e) {
-			System.out.println("❌ Error de conexión: " + e.getMessage());
+			System.out.println("❌ ERROR: No se pudo conectar a la base de datos.");
+			System.out.println("Detalle: " + e.getMessage());
 		}
 		System.out.println("=============================================\n");
 	}
