@@ -388,17 +388,25 @@
              ══════════════════════════════════════════════════════ -->
       <div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div class="subview-nav" role="tablist" aria-label="Selector de módulo">
-          <button class="subview-btn active" id="btn-tab-salones" onclick="cambiarSubvista('salones')" role="tab"
-            aria-selected="true" aria-controls="panel-salones">
+          <button class="subview-btn" th:classappend="${tabActivo == 'salones' or tabActivo == null ? 'active' : ''}"
+            id="btn-tab-salones" onclick="cambiarSubvista('salones')" role="tab"
+            th:aria-selected="${tabActivo == 'salones' or tabActivo == null}" aria-controls="panel-salones">
             <i class="bi bi-building"></i> Salones
           </button>
-          <button class="subview-btn" id="btn-tab-clases" onclick="cambiarSubvista('clases')" role="tab"
-            aria-selected="false" aria-controls="panel-clases">
+          <button class="subview-btn" th:classappend="${tabActivo == 'clases' ? 'active' : ''}" id="btn-tab-clases"
+            onclick="cambiarSubvista('clases')" role="tab" th:aria-selected="${tabActivo == 'clases'}"
+            aria-controls="panel-clases">
             <i class="bi bi-calendar3-week"></i> Clases
           </button>
-          <button class="subview-btn" id="btn-tab-talleres" onclick="cambiarSubvista('talleres')" role="tab"
-            aria-selected="false" aria-controls="panel-talleres">
+          <button class="subview-btn" th:classappend="${tabActivo == 'talleres' ? 'active' : ''}" id="btn-tab-talleres"
+            onclick="cambiarSubvista('talleres')" role="tab" th:aria-selected="${tabActivo == 'talleres'}"
+            aria-controls="panel-talleres">
             <i class="bi bi-vinyl-fill"></i> Talleres
+          </button>
+          <button class="subview-btn" th:classappend="${tabActivo == 'materias' ? 'active' : ''}" id="btn-tab-materias"
+            onclick="cambiarSubvista('materias')" role="tab" th:aria-selected="${tabActivo == 'materias'}"
+            aria-controls="panel-materias">
+            <i class="bi bi-book"></i> Materias
           </button>
         </div>
 
@@ -407,7 +415,9 @@
       <!-- ══════════════════════════════════════════════════════
              SUB-VISTA 1: SALONES
              ══════════════════════════════════════════════════════ -->
-      <div id="panel-salones" class="subview-panel active" role="tabpanel" aria-labelledby="btn-tab-salones">
+      <div id="panel-salones" class="subview-panel"
+        th:classappend="${tabActivo == 'salones' or tabActivo == null ? 'active' : ''}" role="tabpanel"
+        aria-labelledby="btn-tab-salones">
 
         <div class="content-card">
           <div class="content-card-header">
@@ -473,7 +483,8 @@
       <!-- ══════════════════════════════════════════════════════
              SUB-VISTA 2: CLASES — Cuadrícula de horarios
              ══════════════════════════════════════════════════════ -->
-      <div id="panel-clases" class="subview-panel" role="tabpanel" aria-labelledby="btn-tab-clases">
+      <div id="panel-clases" class="subview-panel" th:classappend="${tabActivo == 'clases' ? 'active' : ''}"
+        role="tabpanel" aria-labelledby="btn-tab-clases">
 
         <!-- Alertas de resultado de guardado de clase (flash attributes) -->
         <div th:if="${claseError}" class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-3"
@@ -543,7 +554,8 @@
       <!-- ══════════════════════════════════════════════════════
              SUB-VISTA 3: TALLERES
              ══════════════════════════════════════════════════════ -->
-      <div id="panel-talleres" class="subview-panel" role="tabpanel" aria-labelledby="btn-tab-talleres">
+      <div id="panel-talleres" class="subview-panel" th:classappend="${tabActivo == 'talleres' ? 'active' : ''}"
+        role="tabpanel" aria-labelledby="btn-tab-talleres">
 
         <div class="content-card">
           <div class="content-card-header">
@@ -620,6 +632,71 @@
 
       </div><!-- /panel-talleres -->
 
+      <!-- ══════════════════════════════════════════════════════
+             SUB-VISTA 4: MATERIAS
+             ══════════════════════════════════════════════════════ -->
+      <div id="panel-materias" class="subview-panel" th:classappend="${tabActivo == 'materias' ? 'active' : ''}"
+        role="tabpanel" aria-labelledby="btn-tab-materias">
+
+        <div class="content-card">
+          <div class="content-card-header">
+            <div class="content-card-title">
+              <i class="bi bi-book" style="color:#6f42c1;"></i>
+              Catálogo de Materias / Instrumentos
+            </div>
+            <div class="d-flex align-items-center gap-3">
+              <span class="badge"
+                style="background:rgba(111,66,193,0.1); color:#6f42c1; font-size:12px; padding:5px 12px; border-radius:50px;">
+                <span id="total-materias" th:text="${materias != null ? materias.size() : 0}">0</span> registros
+              </span>
+              <button class="btn btn-sm d-flex align-items-center gap-2" onclick="abrirModalNuevaMateria()" style="background:linear-gradient(135deg,#6f42c1,#5a32a3); color:#fff; border:none;
+                                       border-radius:10px; padding:7px 16px; font-size:13px; font-weight:500;
+                                       box-shadow:0 4px 12px rgba(111,66,193,0.3);">
+                <i class="bi bi-plus-lg"></i> Nueva Materia
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table tabla-custom mb-0" id="tabla-materias">
+              <thead>
+                <tr>
+                  <th style="width:80px;">ID</th>
+                  <th>Nombre de la Materia</th>
+                  <th style="width:140px; text-align:center;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-materias">
+                <tr th:each="m : ${materias}">
+                  <td th:text="${m.idMateria}">1</td>
+                  <td th:text="${m.nombreMateria}">Piano</td>
+                  <td style="text-align:center;">
+                    <button class="btn btn-sm btn-outline-secondary btn-icono" title="Editar"
+                      th:onclick="abrirModalEditarMateria([[${m.idMateria}]], '[[${m.nombreMateria}]]')">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar"
+                      th:href="@{/materias/eliminar/{id}(id=${m.idMateria})}"
+                      onclick="return confirm('¿Estás seguro de eliminar esta materia?');">
+                      <i class="bi bi-trash3-fill"></i>
+                    </a>
+                  </td>
+                </tr>
+                <tr th:if="${materias == null or materias.isEmpty()}" id="fila-vacia-materias">
+                  <td colspan="3">
+                    <div class="empty-state">
+                      <i class="bi bi-book"></i>
+                      <p>No hay materias registradas aún.<br>
+                        Usa el botón <strong>Nueva Materia</strong> para comenzar.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /panel-materias -->
+
     </div><!-- /p-4 -->
   </div><!-- /main-content -->
 
@@ -660,6 +737,41 @@
 
   <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- ══════════════════════════════════════════════════════
+     MODAL DE MATERIA (Crear / Editar)
+     ══════════════════════════════════════════════════════ -->
+  <div class="modal fade" id="modalMateria" tabindex="-1" aria-labelledby="modalMateriaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow" style="border-radius:16px;">
+        <div class="modal-header border-bottom-0 pb-0">
+          <h5 class="modal-title fw-bold" id="modalMateriaLabel" style="color:#1a1a2e;">
+            <i class="bi bi-book me-2" style="color:#6f42c1;"></i><span id="modalMateriaTitle">Nueva Materia</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form th:action="@{/materias/guardar}" th:object="${materiaObj}" method="post" id="formMateria">
+          <div class="modal-body">
+            <input type="hidden" th:field="*{idMateria}" id="materia-id">
+            <div class="mb-3">
+              <label for="materia-nombre" class="form-label fw-semibold" style="font-size:14px;">Nombre de la Materia <span
+                  class="text-danger">*</span></label>
+              <input type="text" class="form-control" th:field="*{nombreMateria}" id="materia-nombre" required
+                maxlength="100" placeholder="Ej. Piano">
+            </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+              style="border-radius:10px; font-size:14px; font-weight:500;">Cancelar</button>
+            <button type="submit" class="btn"
+              style="background: linear-gradient(135deg,#6f42c1,#5a32a3); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:500; box-shadow:0 4px 12px rgba(111,66,193,0.3);">
+              Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- ══════════════════════════════════════════════════════
      MODAL DE CLASE (Registro contextual desde cuadrícula)
@@ -982,7 +1094,7 @@
     ────────────────────────────────────────────────────────── */
 
 
-    const SUBVISTAS = ['salones', 'clases', 'talleres'];
+    const SUBVISTAS = ['salones', 'clases', 'talleres', 'materias'];
 
     /**
      * Cambia la sub-vista activa (Salones / Clases / Talleres).
@@ -1029,6 +1141,21 @@
       document.getElementById('salon-id').value = id;
       document.getElementById('salon-nombre').value = nombre;
       new bootstrap.Modal(document.getElementById('modalSalon')).show();
+    }
+
+    /* ─── Funciones para Modal de Materias ─── */
+    function abrirModalNuevaMateria() {
+      document.getElementById('modalMateriaTitle').textContent = 'Nueva Materia';
+      document.getElementById('formMateria').reset();
+      document.getElementById('materia-id').value = '';
+      new bootstrap.Modal(document.getElementById('modalMateria')).show();
+    }
+
+    function abrirModalEditarMateria(id, nombre) {
+      document.getElementById('modalMateriaTitle').textContent = 'Editar Materia';
+      document.getElementById('materia-id').value = id;
+      document.getElementById('materia-nombre').value = nombre;
+      new bootstrap.Modal(document.getElementById('modalMateria')).show();
     }
 
     /* ──────────────────────────────────────────────────────
@@ -1264,6 +1391,13 @@
       editCheckboxesGrupal.forEach(chk => chk.addEventListener('change', actualizarBadgesGrupalesEdit));
 
       buildHorario();
+
+      // Activar pestaña inicial si viene por parámetro
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab && SUBVISTAS.includes(tab)) {
+        cambiarSubvista(tab);
+      }
     });
   </script>
 </body>
