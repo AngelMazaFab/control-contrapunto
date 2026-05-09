@@ -1,701 +1,982 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta name="description" content="Módulo Clases/Salones – Sistema de Control Contrapunto"/>
-    <!-- Vista unificada para la gestión de horarios, aulas físicas y talleres -->
-    <title>Clases / Salones | Control Contrapunto</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Módulo Clases/Salones – Sistema de Control Contrapunto" />
+  <!-- Vista unificada para la gestión de horarios, aulas físicas y talleres -->
+  <title>Clases / Salones | Control Contrapunto</title>
 
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <!-- Bootstrap 5 CSS -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f0f2f5;
-            margin: 0;
-            min-height: 100vh;
-        }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      min-height: 100vh;
+    }
 
-        /* ── Sidebar (estilos compartidos) ── */
-        .sidebar-link {
-            font-size: 14px; font-weight: 500;
-            color: #8b9db5; padding: 10px 14px;
-            text-decoration: none;
-            transition: background 0.2s, color 0.2s, transform 0.15s;
-        }
-        .sidebar-link:hover {
-            background: rgba(255,255,255,0.07);
-            color: #fff; transform: translateX(3px);
-        }
-        .sidebar-link.active {
-            background: rgba(253,126,20,0.15);
-            color: #FD7E14 !important;
-            border-left: 3px solid #FD7E14;
-        }
-        .sidebar-link-logout {
-            font-size: 13px; font-weight: 500;
-            color: #8b9db5; text-decoration: none;
-            transition: background 0.2s, color 0.2s;
-        }
-        .sidebar-link-logout:hover {
-            background: rgba(220,53,69,0.12); color: #e74c3c;
-        }
+    /* ── Sidebar (estilos compartidos) ── */
+    .sidebar-link {
+      font-size: 14px;
+      font-weight: 500;
+      color: #8b9db5;
+      padding: 10px 14px;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
 
-        /* ── Layout ── */
-        .main-content {
-            margin-left: 260px;
-            min-height: 100vh;
-            display: flex; flex-direction: column;
-        }
+    .sidebar-link:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: #fff;
+      transform: translateX(3px);
+    }
 
-        /* ── Top bar ── */
-        .topbar {
-            background: #fff; padding: 16px 32px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            position: sticky; top: 0; z-index: 100;
-        }
-        .topbar-title   { font-size: 20px; font-weight: 600; color: #1a1a2e; }
-        .topbar-breadcrumb { font-size: 13px; color: #6c757d; }
+    .sidebar-link.active {
+      background: rgba(253, 126, 20, 0.15);
+      color: #FD7E14 !important;
+      border-left: 3px solid #FD7E14;
+    }
 
-        /* ── Sub-navegación tipo pill/toggle ── */
-        .subview-nav {
-            background: #fff;
-            border-radius: 14px;
-            padding: 6px;
-            display: inline-flex;
-            gap: 4px;
-            border: 1.5px solid #e9ecef;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .subview-btn {
-            border: none;
-            background: transparent;
-            border-radius: 10px;
-            padding: 8px 22px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #6c757d;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-            display: flex; align-items: center;
-            gap: 7px;
-        }
-        .subview-btn:hover {
-            background: #f8f9fa; color: #1a1a2e;
-        }
-        .subview-btn.active {
-            background: linear-gradient(135deg, #6f42c1, #5a32a3);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(111,66,193,0.35);
-        }
+    .sidebar-link-logout {
+      font-size: 13px;
+      font-weight: 500;
+      color: #8b9db5;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
 
-        /* ── Paneles de sub-vista ── */
-        .subview-panel { display: none; }
-        .subview-panel.active { display: block; }
+    .sidebar-link-logout:hover {
+      background: rgba(220, 53, 69, 0.12);
+      color: #e74c3c;
+    }
 
-        /* ── Tarjeta de contenido ── */
-        .content-card {
-            background: #fff;
-            border-radius: 16px;
-            border: 1.5px solid #e9ecef;
-            overflow: hidden;
-        }
-        .content-card-header {
-            padding: 18px 24px;
-            border-bottom: 1px solid #f0f2f5;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .content-card-title {
-            font-size: 15px; font-weight: 600; color: #1a1a2e;
-            display: flex; align-items: center; gap: 8px;
-        }
+    /* ── Layout ── */
+    .main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* ── Tabla ── */
-        .tabla-custom thead th {
-            background: #f8f9fa;
-            font-size: 12px; font-weight: 600;
-            color: #6c757d; letter-spacing: 0.5px; text-transform: uppercase;
-            border-bottom: 2px solid #e9ecef; padding: 12px 16px;
-        }
-        .tabla-custom tbody td {
-            font-size: 14px; color: #1a1a2e;
-            padding: 13px 16px; border-bottom: 1px solid #f0f2f5;
-            vertical-align: middle;
-        }
-        .tabla-custom tbody tr:hover td {
-            background: #fafafa;
-        }
+    /* ── Top bar ── */
+    .topbar {
+      background: #fff;
+      padding: 16px 32px;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-        /* ── Badge capacidad ── */
-        .badge-capacidad {
-            background: rgba(111,66,193,0.1);
-            color: #6f42c1;
-            font-size: 12px; font-weight: 600;
-            padding: 4px 10px; border-radius: 50px;
-        }
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
 
-        /* ── Empty state ── */
-        .empty-state {
-            text-align: center; padding: 60px 24px;
-        }
-        .empty-state i {
-            font-size: 48px; color: #dee2e6; margin-bottom: 16px; display: block;
-        }
-        .empty-state p {
-            font-size: 14px; color: #adb5bd; margin: 0;
-        }
+    .topbar-breadcrumb {
+      font-size: 13px;
+      color: #6c757d;
+    }
 
-        /* ── Sección de preparación de Clases ── */
-        .prep-banner {
-            background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
-            border-radius: 14px; padding: 24px 28px; color: #fff;
-            margin-bottom: 20px; position: relative; overflow: hidden;
-        }
-        .prep-banner::after {
-            content: '\f1e5';
-            font-family: 'Bootstrap-icons';
-            position: absolute; right: 28px; top: 50%;
-            transform: translateY(-50%);
-            font-size: 64px; color: rgba(255,255,255,0.08);
-        }
-        .prep-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 50px; padding: 4px 12px;
-            font-size: 12px; font-weight: 500; margin-bottom: 10px;
-        }
+    /* ── Sub-navegación tipo pill/toggle ── */
+    .subview-nav {
+      background: #fff;
+      border-radius: 14px;
+      padding: 6px;
+      display: inline-flex;
+      gap: 4px;
+      border: 1.5px solid #e9ecef;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
 
-        /* ── Formulario de parámetros de clase (preparación visual) ── */
-        .param-card {
-            background: #fff; border-radius: 14px;
-            border: 1.5px solid #e9ecef; padding: 22px 24px;
-        }
-        .param-label {
-            font-size: 12px; font-weight: 600; color: #495057;
-            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
-        }
-        .form-check-label { font-size: 14px; color: #1a1a2e; }
+    .subview-btn {
+      border: none;
+      background: transparent;
+      border-radius: 10px;
+      padding: 8px 22px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6c757d;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
 
-        /* ── Hamburger button ── */
-        .btn-hamburger {
-            display: none;
-            background: none;
-            border: none;
-            color: #495057;
-            font-size: 22px;
-            padding: 4px 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-hamburger:hover { background: #f0f2f5; }
+    .subview-btn:hover {
+      background: #f8f9fa;
+      color: #1a1a2e;
+    }
 
-        /* ── Responsive ── */
-        @media (max-width: 991px) {
-            .btn-hamburger { display: inline-flex; align-items: center; }
-            .main-content { margin-left: 0 !important; }
-            .topbar { padding: 12px 16px; }
-            .topbar-title { font-size: 17px; }
-            .prep-banner { padding: 16px 18px; }
-            .prep-banner::after { display: none; }
-            .subview-btn { padding: 7px 14px; font-size: 13px; }
-        }
-        @media (max-width: 576px) {
-            .topbar-breadcrumb { display: none; }
-            .subview-btn span { display: none; }
-            .subview-btn { padding: 8px 12px; }
-        }
-    </style>
+    .subview-btn.active {
+      background: linear-gradient(135deg, #6f42c1, #5a32a3);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(111, 66, 193, 0.35);
+    }
+
+    /* ── Paneles de sub-vista ── */
+    .subview-panel {
+      display: none;
+    }
+
+    .subview-panel.active {
+      display: block;
+    }
+
+    /* ── Tarjeta de contenido ── */
+    .content-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1.5px solid #e9ecef;
+      overflow: hidden;
+    }
+
+    .content-card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #f0f2f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .content-card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a2e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Tabla ── */
+    .tabla-custom thead th {
+      background: #f8f9fa;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6c757d;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 2px solid #e9ecef;
+      padding: 12px 16px;
+    }
+
+    .tabla-custom tbody td {
+      font-size: 14px;
+      color: #1a1a2e;
+      padding: 13px 16px;
+      border-bottom: 1px solid #f0f2f5;
+      vertical-align: middle;
+    }
+
+    .tabla-custom tbody tr:hover td {
+      background: #fafafa;
+    }
+
+    /* ── Badge capacidad ── */
+    .badge-capacidad {
+      background: rgba(111, 66, 193, 0.1);
+      color: #6f42c1;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 50px;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      color: #dee2e6;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: #adb5bd;
+      margin: 0;
+    }
+
+    /* ── Sección de preparación de Clases ── */
+    .prep-banner {
+      background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+      border-radius: 14px;
+      padding: 24px 28px;
+      color: #fff;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .prep-banner::after {
+      content: '\f1e5';
+      font-family: 'Bootstrap-icons';
+      position: absolute;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 64px;
+      color: rgba(255, 255, 255, 0.08);
+    }
+
+    .prep-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    /* ── Formulario de parámetros de clase (preparación visual) ── */
+    .param-card {
+      background: #fff;
+      border-radius: 14px;
+      border: 1.5px solid #e9ecef;
+      padding: 22px 24px;
+    }
+
+    .param-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #495057;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .form-check-label {
+      font-size: 14px;
+      color: #1a1a2e;
+    }
+
+    /* ── Hamburger button ── */
+    .btn-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: #495057;
+      font-size: 22px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-hamburger:hover {
+      background: #f0f2f5;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 991px) {
+      .btn-hamburger {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .main-content {
+        margin-left: 0 !important;
+      }
+
+      .topbar {
+        padding: 12px 16px;
+      }
+
+      .topbar-title {
+        font-size: 17px;
+      }
+
+      .prep-banner {
+        padding: 16px 18px;
+      }
+
+      .prep-banner::after {
+        display: none;
+      }
+
+      .subview-btn {
+        padding: 7px 14px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .topbar-breadcrumb {
+        display: none;
+      }
+
+      .subview-btn span {
+        display: none;
+      }
+
+      .subview-btn {
+        padding: 8px 12px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ══════════════════════════ Sidebar ══════════════════════════ -->
-<div th:replace="~{fragments/navbar :: sidebar}"></div>
+  <!-- ══════════════════════════ Sidebar ══════════════════════════ -->
+  <div th:replace="~{fragments/navbar :: sidebar}"></div>
 
-<!-- ══════════════════════════ Contenido Principal ══════════════ -->
-<div class="main-content">
+  <!-- ══════════════════════════ Contenido Principal ══════════════ -->
+  <div class="main-content">
 
     <!-- Top Bar -->
     <div class="topbar">
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn-hamburger" onclick="abrirSidebar()" aria-label="Abrir menú">
-                <i class="bi bi-list"></i>
-            </button>
-            <div>
-                <div class="topbar-title">Clases / Salones</div>
-                <div class="topbar-breadcrumb">
-                    <i class="bi bi-house-fill me-1"></i>
-                    <a th:href="@{/menu}" style="color:#6c757d; text-decoration:none;">Inicio</a>
-                    <span class="mx-1">›</span> Clases/Salones
-                </div>
-            </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn-hamburger" onclick="abrirSidebar()" aria-label="Abrir menú">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <div class="topbar-title">Clases / Salones</div>
+          <div class="topbar-breadcrumb">
+            <i class="bi bi-house-fill me-1"></i>
+            <a th:href="@{/menu}" style="color:#6c757d; text-decoration:none;">Inicio</a>
+            <span class="mx-1">›</span> Clases/Salones
+          </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge text-bg-light border d-none d-sm-inline-flex" style="font-size:13px; padding:8px 14px;">
-                <i class="bi bi-person-circle me-1" style="color:#6f42c1;"></i>
-                <span th:text="${usuarioActivo}">Administrador</span>
-            </span>
-            <a th:href="@{/logout}"
-               class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-               id="topbar-logout"
-               style="border-radius:8px; font-size:13px;">
-                <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Salir</span>
-            </a>
-        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-light border d-none d-sm-inline-flex" style="font-size:13px; padding:8px 14px;">
+          <i class="bi bi-person-circle me-1" style="color:#6f42c1;"></i>
+          <span th:text="${usuarioActivo}">Administrador</span>
+        </span>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+          id="topbar-logout" style="border-radius:8px; font-size:13px;">
+          <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Salir</span>
+        </a>
+      </div>
     </div>
 
     <!-- ─── Contenido del módulo ─── -->
     <div class="p-4 flex-grow-1">
 
-        <!-- ══════════════════════════════════════════════════════
-             Selector de sub-vista (toggle principal)
+      <!-- ══════════════════════════════════════════════════════
+             Selector de sub-vista
              ══════════════════════════════════════════════════════ -->
-        <div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div class="subview-nav" role="tablist" aria-label="Selector de módulo">
-                <button class="subview-btn active"
-                        id="btn-tab-salones"
-                        onclick="cambiarSubvista('salones')"
-                        role="tab" aria-selected="true"
-                        aria-controls="panel-salones">
-                    <i class="bi bi-building"></i> Salones
-                </button>
-                <button class="subview-btn"
-                        id="btn-tab-clases"
-                        onclick="cambiarSubvista('clases')"
-                        role="tab" aria-selected="false"
-                        aria-controls="panel-clases">
-                    <i class="bi bi-calendar3-week"></i> Clases
-                </button>
-                <button class="subview-btn"
-                        id="btn-tab-talleres"
-                        onclick="cambiarSubvista('talleres')"
-                        role="tab" aria-selected="false"
-                        aria-controls="panel-talleres">
-                    <i class="bi bi-vinyl-fill"></i> Talleres
-                </button>
-            </div>
-
+      <div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="subview-nav" role="tablist" aria-label="Selector de módulo">
+          <button class="subview-btn active" id="btn-tab-salones" onclick="cambiarSubvista('salones')" role="tab"
+            aria-selected="true" aria-controls="panel-salones">
+            <i class="bi bi-building"></i> Salones
+          </button>
+          <button class="subview-btn" id="btn-tab-clases" onclick="cambiarSubvista('clases')" role="tab"
+            aria-selected="false" aria-controls="panel-clases">
+            <i class="bi bi-calendar3-week"></i> Clases
+          </button>
+          <button class="subview-btn" id="btn-tab-talleres" onclick="cambiarSubvista('talleres')" role="tab"
+            aria-selected="false" aria-controls="panel-talleres">
+            <i class="bi bi-vinyl-fill"></i> Talleres
+          </button>
         </div>
 
-        <!-- ══════════════════════════════════════════════════════
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
              SUB-VISTA 1: SALONES
              ══════════════════════════════════════════════════════ -->
-        <div id="panel-salones" class="subview-panel active" role="tabpanel" aria-labelledby="btn-tab-salones">
+      <div id="panel-salones" class="subview-panel active" role="tabpanel" aria-labelledby="btn-tab-salones">
 
-            <div class="content-card">
-                    <div class="content-card-header">
-                        <div class="content-card-title">
-                            <i class="bi bi-building" style="color:#6f42c1;"></i>
-                            Catálogo de Salones / Aulas
-                        </div>
-                        <div class="d-flex align-items-center gap-3">
-                            <span class="badge" style="background:rgba(111,66,193,0.1); color:#6f42c1; font-size:12px; padding:5px 12px; border-radius:50px;">
-                                <span id="total-salones">—</span> registros
-                            </span>
-                            <button class="btn btn-sm d-flex align-items-center gap-2"
-                                    onclick="abrirModalNuevoSalon()"
-                                    style="background:linear-gradient(135deg,#6f42c1,#5a32a3); color:#fff; border:none;
+        <div class="content-card">
+          <div class="content-card-header">
+            <div class="content-card-title">
+              <i class="bi bi-building" style="color:#6f42c1;"></i>
+              Catálogo de Salones / Aulas
+            </div>
+            <div class="d-flex align-items-center gap-3">
+              <span class="badge"
+                style="background:rgba(111,66,193,0.1); color:#6f42c1; font-size:12px; padding:5px 12px; border-radius:50px;">
+                <span id="total-salones">—</span> registros
+              </span>
+              <button class="btn btn-sm d-flex align-items-center gap-2" onclick="abrirModalNuevoSalon()" style="background:linear-gradient(135deg,#6f42c1,#5a32a3); color:#fff; border:none;
                                            border-radius:10px; padding:7px 16px; font-size:13px; font-weight:500;
                                            box-shadow:0 4px 12px rgba(111,66,193,0.3);">
-                                <i class="bi bi-plus-lg"></i> Nuevo Salón
-                            </button>
-                        </div>
-                    </div>
-
-                <!-- Tabla de salones -->
-                <div class="table-responsive">
-                    <table class="table tabla-custom mb-0" id="tabla-salones">
-                        <thead>
-                            <tr>
-                                <th style="width:80px;">ID</th>
-                                <th>Nombre del Salón</th>
-                                <th style="width:140px; text-align:center;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-salones">
-                            <tr th:each="salon : ${salones}">
-                                <td th:text="${salon.id}">1</td>
-                                <td th:text="${salon.nombre}">Aula A</td>
-                                <td style="text-align:center;">
-                                    <button class="btn btn-sm btn-outline-secondary btn-icono" title="Editar"
-                                            th:onclick="abrirModalEditarSalon([[${salon.id}]], [[${salon.nombre}]])">
-                                        <i class="bi bi-pencil-fill"></i>
-                                    </button>
-                                    <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar"
-                                       th:href="@{/salones/eliminar/{id}(id=${salon.id})}"
-                                       onclick="return confirm('¿Estás seguro de eliminar este salón?');">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr th:if="${salones == null or salones.isEmpty()}" id="fila-vacia-salones">
-                                <td colspan="3">
-                                    <div class="empty-state">
-                                        <i class="bi bi-building"></i>
-                                        <p>No hay salones registrados aún.<br>
-                                           Usa el botón <strong>Nuevo Salón</strong> para comenzar.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <i class="bi bi-plus-lg"></i> Nuevo Salón
+              </button>
             </div>
-        </div><!-- /panel-salones -->
+          </div>
+
+          <!-- Tabla de salones -->
+          <div class="table-responsive">
+            <table class="table tabla-custom mb-0" id="tabla-salones">
+              <thead>
+                <tr>
+                  <th style="width:80px;">ID</th>
+                  <th>Nombre del Salón</th>
+                  <th style="width:140px; text-align:center;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-salones">
+                <tr th:each="salon : ${salones}">
+                  <td th:text="${salon.id}">1</td>
+                  <td th:text="${salon.nombre}">Aula A</td>
+                  <td style="text-align:center;">
+                    <button class="btn btn-sm btn-outline-secondary btn-icono" title="Editar"
+                      th:onclick="abrirModalEditarSalon([[${salon.id}]], '[[${salon.nombre}]]')">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar"
+                      th:href="@{/salones/eliminar/{id}(id=${salon.id})}"
+                      onclick="return confirm('¿Estás seguro de eliminar este salón?');">
+                      <i class="bi bi-trash3-fill"></i>
+                    </a>
+                  </td>
+                </tr>
+                <tr th:if="${salones == null or salones.isEmpty()}" id="fila-vacia-salones">
+                  <td colspan="3">
+                    <div class="empty-state">
+                      <i class="bi bi-building"></i>
+                      <p>No hay salones registrados aún.<br>
+                        Usa el botón <strong>Nuevo Salón</strong> para comenzar.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /panel-salones -->
 
 
-        <!-- ══════════════════════════════════════════════════════
+      <!-- ══════════════════════════════════════════════════════
              SUB-VISTA 2: CLASES — Cuadrícula de horarios
              ══════════════════════════════════════════════════════ -->
-        <div id="panel-clases" class="subview-panel" role="tabpanel" aria-labelledby="btn-tab-clases">
+      <div id="panel-clases" class="subview-panel" role="tabpanel" aria-labelledby="btn-tab-clases">
 
-            <!-- Alertas de resultado de guardado de clase (flash attributes) -->
-            <div th:if="${claseError}" class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-3"
-                 role="alert" style="border-radius:12px; border:none; font-size:14px;">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <span th:text="${claseError}">Error al guardar la clase.</span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        <!-- Alertas de resultado de guardado de clase (flash attributes) -->
+        <div th:if="${claseError}" class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-3"
+          role="alert" style="border-radius:12px; border:none; font-size:14px;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span th:text="${claseError}">Error al guardar la clase.</span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+        <div th:if="${claseExito}" class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-3"
+          role="alert" style="border-radius:12px; border:none; font-size:14px;">
+          <i class="bi bi-check-circle-fill"></i>
+          <span th:text="${claseExito}">Clase registrada correctamente.</span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+
+        <!-- Datos ocultos para JS -->
+        <div id="clases-data" class="d-none">
+          <div th:each="c : ${listClases}" class="clase-item" th:data-id="${c.idClase}"
+            th:data-hora-inicio="${c.horaInicio}" th:data-hora-fin="${c.horaFin}"
+            th:data-dia="${c.diaSemana != null ? c.diaSemana.nombreDia : ''}"
+            th:data-id-dia="${c.diaSemana != null ? c.diaSemana.idDiaSemana : ''}"
+            th:data-materia="${c.materia != null ? c.materia.nombreMateria : ''}"
+            th:data-id-materia="${c.materia != null ? c.materia.idMateria : ''}"
+            th:data-profesor="${c.profesor != null ? c.profesor.nombreProfesor : ''}"
+            th:data-id-profesor="${c.profesor != null ? c.profesor.idProfesor : ''}"
+            th:data-salon="${c.salon != null ? c.salon.nombre : ''}"
+            th:data-id-salon="${c.salon != null ? c.salon.id : ''}"
+            th:data-primer-alumno="${c.alumnos != null and !c.alumnos.isEmpty() ? c.alumnos[0].nombreAlumno : ''}"
+            th:data-id-alumno="${c.alumnos != null and !c.alumnos.isEmpty() ? c.alumnos[0].idAlumno : ''}"
+            th:data-ids-alumnos="${c.alumnos != null ? #strings.listJoin(c.alumnos.![idAlumno.toString()], ',') : ''}"
+            th:data-cantidad-alumnos="${c.alumnos != null ? c.alumnos.size() : 0}"
+            th:data-tipo-clase="${c.tipoClase != null and c.tipoClase}"
+            th:data-es-temporal="${c.esReposicion != null and c.esReposicion == -1}"></div>
+        </div>
+
+        <!-- Cuadrícula de horarios por día -->
+        <div class="content-card mb-4">
+          <div class="content-card-header">
+            <div class="content-card-title">
+              <i class="bi bi-calendar3-week" style="color:#6f42c1;"></i>
+              Cuadrícula de Horarios
             </div>
-            <div th:if="${claseExito}" class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-3"
-                 role="alert" style="border-radius:12px; border:none; font-size:14px;">
-                <i class="bi bi-check-circle-fill"></i>
-                <span th:text="${claseExito}">Clase registrada correctamente.</span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
+            <small class="text-muted" style="font-size:12px;">Haz clic en <strong>Registrar</strong> en una celda
+              disponible para agendar una clase.</small>
+          </div>
 
-            <!-- Datos ocultos para JS -->
-            <div id="clases-data" class="d-none">
-                <div th:each="c : ${listClases}"
-                     class="clase-item"
-                     th:data-id="${c.idClase}"
-                     th:data-hora-inicio="${c.horaInicio}"
-                     th:data-hora-fin="${c.horaFin}"
-                     th:data-dia="${c.diaSemana != null ? c.diaSemana.nombreDia : ''}"
-                     th:data-id-dia="${c.diaSemana != null ? c.diaSemana.idDiaSemana : ''}"
-                     th:data-materia="${c.materia != null ? c.materia.nombreMateria : ''}"
-                     th:data-id-materia="${c.materia != null ? c.materia.idMateria : ''}"
-                     th:data-profesor="${c.profesor != null ? c.profesor.nombreProfesor : ''}"
-                     th:data-id-profesor="${c.profesor != null ? c.profesor.idProfesor : ''}"
-                     th:data-salon="${c.salon != null ? c.salon.nombre : ''}"
-                     th:data-id-salon="${c.salon != null ? c.salon.id : ''}"
-                     th:data-primer-alumno="${c.alumnos != null and !c.alumnos.isEmpty() ? c.alumnos[0].nombreAlumno : ''}"
-                     th:data-id-alumno="${c.alumnos != null and !c.alumnos.isEmpty() ? c.alumnos[0].idAlumno : ''}"
-                     th:data-ids-alumnos="${c.alumnos != null ? #strings.listJoin(c.alumnos.![idAlumno.toString()], ',') : ''}"
-                     th:data-cantidad-alumnos="${c.alumnos != null ? c.alumnos.size() : 0}"
-                     th:data-tipo-clase="${c.tipoClase != null and c.tipoClase}"
-                     th:data-es-temporal="${c.esReposicion != null and c.esReposicion == -1}"></div>
-            </div>
+          <div class="table-responsive mt-2">
+            <table class="table tabla-custom mb-0" id="tabla-horarios">
+              <thead>
+                <tr>
+                  <th style="width:110px;">Hora</th>
+                  <th th:each="dia : ${listDiasSemana}" th:text="${dia.nombreDia}">Lunes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Filas generadas por JS para cada bloque horario -->
+                <!-- Se renderizan en el script de abajo con buildHorario() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-            <!-- Cuadrícula de horarios por día -->
-            <div class="content-card mb-4">
-                <div class="content-card-header">
-                    <div class="content-card-title">
-                        <i class="bi bi-calendar3-week" style="color:#6f42c1;"></i>
-                        Cuadrícula de Horarios
-                    </div>
-                    <small class="text-muted" style="font-size:12px;">Haz clic en <strong>Registrar</strong> en una celda disponible para agendar una clase.</small>
-                </div>
-
-                <div class="table-responsive mt-2">
-                    <table class="table tabla-custom mb-0" id="tabla-horarios">
-                        <thead>
-                            <tr>
-                                <th style="width:110px;">Hora</th>
-                                <th th:each="dia : ${listDiasSemana}" th:text="${dia.nombreDia}">Lunes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Filas generadas por JS para cada bloque horario -->
-                            <!-- Se renderizan en el script de abajo con buildHorario() -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div><!-- /panel-clases -->
+      </div><!-- /panel-clases -->
 
 
 
-        <!-- ══════════════════════════════════════════════════════
+      <!-- ══════════════════════════════════════════════════════
              SUB-VISTA 3: TALLERES
              ══════════════════════════════════════════════════════ -->
-        <div id="panel-talleres" class="subview-panel" role="tabpanel" aria-labelledby="btn-tab-talleres">
+      <div id="panel-talleres" class="subview-panel" role="tabpanel" aria-labelledby="btn-tab-talleres">
 
-            <div class="content-card">
-                <div class="content-card-header">
-                    <div class="content-card-title">
-                        <i class="bi bi-vinyl-fill" style="color:#6f42c1;"></i>
-                        Talleres Especiales / Clases Grupales
-                    </div>
-                    <span class="badge"
-                          style="background:rgba(111,66,193,0.1); color:#6f42c1;
-                                 font-size:12px; padding:5px 12px; border-radius:50px;">
-                        Visualización
-                    </span>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table tabla-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>Día</th>
-                                <th>Horario</th>
-                                <th>Materia</th>
-                                <th>Profesor</th>
-                                <th>Salón</th>
-                                <th>Alumnos Inscritos</th>
-                                <th style="text-align:center;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-talleres">
-                            <!-- Utilizamos SpEL para filtrar las clases donde tipoClase == true -->
-                            <tr th:each="c : ${listClases.?[tipoClase == true]}">
-                                <td th:text="${c.diaSemana != null ? c.diaSemana.nombreDia : ''}">Lunes</td>
-                                <td th:text="${c.horaInicio + ' - ' + c.horaFin}">07:00 - 08:00</td>
-                                <td th:text="${c.materia != null ? c.materia.nombreMateria : ''}">Materia</td>
-                                <td th:text="${c.profesor != null ? c.profesor.nombreProfesor : ''}">Profesor</td>
-                                <td th:text="${c.salon != null ? c.salon.nombre : ''}">Salón</td>
-                                <td style="max-width: 250px;">
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <span th:each="a : ${c.alumnos}" class="badge bg-light text-dark border" style="font-weight: 500;" th:text="${a.nombreAlumno}"></span>
-                                    </div>
-                                    <span th:if="${c.alumnos == null or c.alumnos.isEmpty()}" class="text-muted" style="font-size:12px;">Sin inscritos</span>
-                                </td>
-                                <td style="text-align:center;">
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <button type="button" class="btn btn-sm btn-outline-primary btn-icono" title="Editar taller/clase grupal"
-                                                th:onclick="abrirModalEditarClase([[${c.idClase}]], [[${c.horaInicio}]], [[${c.horaFin}]], [[${c.diaSemana.idDiaSemana}]], [[${c.salon.id}]], [[${c.profesor.idProfesor}]], [[${c.materia.idMateria}]], '', 'true', [[${c.esReposicion == -1}]], [[${#strings.listJoin(c.alumnos.![idAlumno.toString()], ',')}]] )">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar clase grupal"
-                                           th:href="@{/clases/eliminar/{id}(id=${c.idClase})}"
-                                           onclick="return confirm('¿Estás seguro de eliminar este taller/clase grupal?');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr th:if="${listClases.?[tipoClase == true].isEmpty()}">
-                                <td colspan="7">
-                                    <div class="empty-state py-4">
-                                        <i class="bi bi-vinyl-fill"></i>
-                                        <p style="font-size:14px; color:#adb5bd; margin-top:8px;">
-                                            No hay talleres o clases grupales registrados aún.<br>
-                                            Agrega una clase desde la cuadrícula y activa la opción <strong>Clase Grupal</strong>.
-                                        </p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
+        <div class="content-card">
+          <div class="content-card-header">
+            <div class="content-card-title">
+              <i class="bi bi-vinyl-fill" style="color:#6f42c1;"></i>
+              Talleres Especiales / Clases Grupales
             </div>
+            <span class="badge" style="background:rgba(111,66,193,0.1); color:#6f42c1;
+                                 font-size:12px; padding:5px 12px; border-radius:50px;">
+              Visualización
+            </span>
+          </div>
 
-        </div><!-- /panel-talleres -->
+          <div class="table-responsive">
+            <table class="table tabla-custom mb-0">
+              <thead>
+                <tr>
+                  <th>Día</th>
+                  <th>Horario</th>
+                  <th>Materia</th>
+                  <th>Profesor</th>
+                  <th>Salón</th>
+                  <th>Alumnos Inscritos</th>
+                  <th style="text-align:center;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-talleres">
+                <!-- Utilizamos SpEL para filtrar las clases donde tipoClase == true -->
+                <tr th:each="c : ${listClases.?[tipoClase == true]}">
+                  <td th:text="${c.diaSemana != null ? c.diaSemana.nombreDia : ''}">Lunes</td>
+                  <td th:text="${c.horaInicio + ' - ' + c.horaFin}">07:00 - 08:00</td>
+                  <td th:text="${c.materia != null ? c.materia.nombreMateria : ''}">Materia</td>
+                  <td th:text="${c.profesor != null ? c.profesor.nombreProfesor : ''}">Profesor</td>
+                  <td th:text="${c.salon != null ? c.salon.nombre : ''}">Salón</td>
+                  <td style="max-width: 250px;">
+                    <div class="d-flex flex-wrap gap-1">
+                      <span th:each="a : ${c.alumnos}" class="badge bg-light text-dark border" style="font-weight: 500;"
+                        th:text="${a.nombreAlumno}"></span>
+                    </div>
+                    <span th:if="${c.alumnos == null or c.alumnos.isEmpty()}" class="text-muted"
+                      style="font-size:12px;">Sin inscritos</span>
+                  </td>
+                  <td style="text-align:center;">
+                    <div class="d-flex justify-content-center gap-1">
+                      <button type="button" class="btn btn-sm btn-outline-primary btn-icono"
+                        title="Editar taller/clase grupal"
+                        th:onclick="abrirModalEditarClase([[${c.idClase}]], '[[${c.horaInicio}]]', '[[${c.horaFin}]]', [[${c.diaSemana != null ? c.diaSemana.idDiaSemana : 'null'}]], [[${c.salon != null ? c.salon.id : 'null'}]], [[${c.profesor != null ? c.profesor.idProfesor : 'null'}]], [[${c.materia != null ? c.materia.idMateria : 'null'}]], '', 'true', [[${c.esReposicion == -1}]], '[[${c.alumnos != null ? #strings.listJoin(c.alumnos.![idAlumno.toString()], ',') : ''}]]' )">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar clase grupal"
+                        th:href="@{/clases/eliminar/{id}(id=${c.idClase})}"
+                        onclick="return confirm('¿Estás seguro de eliminar este taller/clase grupal?');">
+                        <i class="bi bi-trash"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                <tr th:if="${listClases.?[tipoClase == true].isEmpty()}">
+                  <td colspan="7">
+                    <div class="empty-state py-4">
+                      <i class="bi bi-vinyl-fill"></i>
+                      <p style="font-size:14px; color:#adb5bd; margin-top:8px;">
+                        No hay talleres o clases grupales registrados aún.<br>
+                        Agrega una clase desde la cuadrícula y activa la opción <strong>Clase Grupal</strong>.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div><!-- /panel-talleres -->
 
     </div><!-- /p-4 -->
-</div><!-- /main-content -->
+  </div><!-- /main-content -->
 
-<!-- ══════════════════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════════════
      MODAL DE SALÓN (Crear / Editar)
      ══════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalSalon" tabindex="-1" aria-labelledby="modalSalonLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow" style="border-radius:16px;">
-      <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="modal-title fw-bold" id="modalSalonLabel" style="color:#1a1a2e;">
-          <i class="bi bi-building me-2" style="color:#6f42c1;"></i><span id="modalSalonTitle">Nuevo Salón</span>
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <form th:action="@{/salones/guardar}" th:object="${salonObj}" method="post" id="formSalon">
-        <div class="modal-body">
-          <input type="hidden" th:field="*{id}" id="salon-id">
-          <div class="mb-3">
-            <label for="salon-nombre" class="form-label fw-semibold" style="font-size:14px;">Nombre del Salón <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" th:field="*{nombre}" id="salon-nombre" required maxlength="100" placeholder="Ej. Aula A">
+  <div class="modal fade" id="modalSalon" tabindex="-1" aria-labelledby="modalSalonLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow" style="border-radius:16px;">
+        <div class="modal-header border-bottom-0 pb-0">
+          <h5 class="modal-title fw-bold" id="modalSalonLabel" style="color:#1a1a2e;">
+            <i class="bi bi-building me-2" style="color:#6f42c1;"></i><span id="modalSalonTitle">Nuevo Salón</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form th:action="@{/salones/guardar}" th:object="${salonObj}" method="post" id="formSalon">
+          <div class="modal-body">
+            <input type="hidden" th:field="*{id}" id="salon-id">
+            <div class="mb-3">
+              <label for="salon-nombre" class="form-label fw-semibold" style="font-size:14px;">Nombre del Salón <span
+                  class="text-danger">*</span></label>
+              <input type="text" class="form-control" th:field="*{nombre}" id="salon-nombre" required maxlength="100"
+                placeholder="Ej. Aula A">
+            </div>
           </div>
-        </div>
-        <div class="modal-footer border-top-0 pt-0">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px; font-size:14px; font-weight:500;">Cancelar</button>
-          <button type="submit" class="btn" style="background: linear-gradient(135deg,#6f42c1,#5a32a3); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:500; box-shadow:0 4px 12px rgba(111,66,193,0.3);">
-            Guardar
-          </button>
-        </div>
-      </form>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+              style="border-radius:10px; font-size:14px; font-weight:500;">Cancelar</button>
+            <button type="submit" class="btn"
+              style="background: linear-gradient(135deg,#6f42c1,#5a32a3); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:500; box-shadow:0 4px 12px rgba(111,66,193,0.3);">
+              Guardar
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- ══════════════════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════════════
      MODAL DE CLASE (Registro contextual desde cuadrícula)
      ══════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalClase" tabindex="-1" aria-labelledby="modalClaseLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content border-0 shadow" style="border-radius:16px;">
-      <div class="modal-header border-bottom-0 pb-0">
-        <div>
-          <h5 class="modal-title fw-bold" id="modalClaseLabel" style="color:#1a1a2e;">
-            <i class="bi bi-calendar-plus me-2" style="color:#6f42c1;"></i>Registrar Clase
-          </h5>
-          <!-- Sub-título con hora y día pre-llenado por JS -->
-          <p class="mb-0 mt-1" id="modal-clase-titulo"
-             style="font-size:13px; font-weight:600; color:#6f42c1; letter-spacing:0.4px;"></p>
+  <div class="modal fade" id="modalClase" tabindex="-1" aria-labelledby="modalClaseLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow" style="border-radius:16px;">
+        <div class="modal-header border-bottom-0 pb-0">
+          <div>
+            <h5 class="modal-title fw-bold" id="modalClaseLabel" style="color:#1a1a2e;">
+              <i class="bi bi-calendar-plus me-2" style="color:#6f42c1;"></i>Registrar Clase
+            </h5>
+            <!-- Sub-título con hora y día pre-llenado por JS -->
+            <p class="mb-0 mt-1" id="modal-clase-titulo"
+              style="font-size:13px; font-weight:600; color:#6f42c1; letter-spacing:0.4px;"></p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <form th:action="@{/clases/guardar}" th:object="${claseObj}" method="post" id="formClase">
-        <div class="modal-body pt-3">
+        <form th:action="@{/clases/guardar}" th:object="${claseObj}" method="post" id="formClase">
+          <div class="modal-body pt-3">
 
-          <!-- Campos informativos (pre-llenados, no editables) -->
-          <div class="row g-2 mb-3">
-            <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">HORA INICIO</label>
-              <input type="time" class="form-control form-control-sm"
-                     id="modal-clase-hora-inicio" name="horaInicio" disabled>
-              <input type="hidden" id="modal-clase-hora-inicio-hidden" name="horaInicio">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">HORA FIN</label>
-              <input type="time" class="form-control form-control-sm"
-                     id="modal-clase-hora-fin" name="horaFin" disabled>
-              <input type="hidden" id="modal-clase-hora-fin-hidden" name="horaFin">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">FECHA</label>
-              <input type="date" class="form-control form-control-sm"
-                     id="modal-clase-fecha" name="fechaExacta" disabled>
-              <input type="hidden" id="modal-clase-fecha-hidden" name="fechaExacta">
-            </div>
-          </div>
-
-          <!-- Divisor -->
-          <hr class="my-3" style="border-color:#f0ebff;">
-
-          <!-- Selectores editables -->
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="modal-clase-salon" class="form-label fw-semibold" style="font-size:13px;">Salón</label>
-              <select class="form-select" id="modal-clase-salon" name="salon.id" required>
-                <option value="" disabled selected>Seleccione un salón...</option>
-                <option th:each="s : ${listSalones}" th:value="${s.id}" th:text="${s.nombre}"></option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label for="modal-clase-profesor" class="form-label fw-semibold" style="font-size:13px;">Profesor</label>
-              <select class="form-select" id="modal-clase-profesor" name="profesor.idProfesor" required>
-                <option value="" disabled selected>Seleccione un profesor...</option>
-                <option th:each="p : ${listProfesores}" th:value="${p.idProfesor}" th:text="${p.nombreProfesor}"></option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label for="modal-clase-materia" class="form-label fw-semibold" style="font-size:13px;">Materia</label>
-              <select class="form-select" id="modal-clase-materia" name="materia.idMateria" required>
-                <option value="" disabled selected>Seleccione una materia...</option>
-                <option th:each="m : ${listMaterias}" th:value="${m.idMateria}" th:text="${m.nombreMateria}"></option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label for="modal-clase-dia" class="form-label fw-semibold" style="font-size:13px;">Día de la Semana</label>
-              <select class="form-select" id="modal-clase-dia" disabled>
-                <option value="" disabled selected>Seleccione...</option>
-                <option th:each="d : ${listDiasSemana}" th:value="${d.idDiaSemana}" th:text="${d.nombreDia}"></option>
-              </select>
-              <!-- Hidden input para el día de la semana (disabled ignora el post) -->
-              <input type="hidden" id="modal-clase-dia-hidden" name="diaSemana.idDiaSemana">
-            </div>
-            <!-- Selector de Alumno (Individual) -->
-            <div class="col-md-12" id="contenedor-alumno-individual">
-              <label for="modal-clase-alumnos" class="form-label fw-semibold" style="font-size:13px;">Alumno (Para clases individuales)</label>
-              <select class="form-select" id="modal-clase-alumnos" name="alumnos" required>
-                <option value="" disabled selected>Seleccione un alumno...</option>
-                <option th:each="a : ${listAlumnos}" th:value="${a.idAlumno}" th:text="${a.nombreAlumno}"></option>
-              </select>
-            </div>
-
-            <!-- Selector de Alumnos (Grupal) -->
-            <div class="col-md-12 d-none" id="contenedor-alumno-grupal">
-              <label class="form-label fw-semibold" style="font-size:13px;">Alumnos Inscritos (Clase Grupal)</label>
-              <div class="dropdown">
-                  <button class="form-select text-start d-flex justify-content-between align-items-center" type="button" id="dropdownAlumnosGrupales" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="background-color: #fff; color: #495057;">
-                      <span>Seleccionar estudiantes...</span>
-                      <i class="bi bi-chevron-down" style="font-size:12px;"></i>
-                  </button>
-                  <div class="dropdown-menu w-100 p-3 shadow" aria-labelledby="dropdownAlumnosGrupales" style="border-radius: 12px; border: 1px solid #e9ecef;">
-                      <div class="input-group input-group-sm mb-2">
-                          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                          <input type="text" class="form-control border-start-0 ps-0" id="search-alumnos-grupales" placeholder="Buscar alumno..." style="box-shadow: none;">
-                      </div>
-                      <div id="lista-alumnos-grupales" style="max-height: 200px; overflow-y: auto;">
-                          <div class="form-check custom-checkbox-item py-1 ms-1" th:each="a : ${listAlumnos}" style="border-bottom: 1px solid #f8f9fa;">
-                              <input class="form-check-input checkbox-alumno-grupal" type="checkbox" name="alumnos" th:value="${a.idAlumno}" th:id="'chk_grupal_' + ${a.idAlumno}" th:data-nombre="${a.nombreAlumno}" disabled>
-                              <label class="form-check-label w-100" th:for="'chk_grupal_' + ${a.idAlumno}" th:text="${a.nombreAlumno}" style="font-size: 13.5px; cursor: pointer;"></label>
-                          </div>
-                      </div>
-                  </div>
+            <!-- Campos informativos (pre-llenados, no editables) -->
+            <div class="row g-2 mb-3">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">HORA INICIO</label>
+                <input type="time" class="form-control form-control-sm" id="modal-clase-hora-inicio" name="horaInicio"
+                  disabled>
+                <input type="hidden" id="modal-clase-hora-inicio-hidden" name="horaInicio">
               </div>
-              <!-- Contenedor donde se pintarán los alumnos seleccionados -->
-              <div id="badges-alumnos-grupales" class="mt-2 d-flex flex-wrap gap-2"></div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">HORA FIN</label>
+                <input type="time" class="form-control form-control-sm" id="modal-clase-hora-fin" name="horaFin"
+                  disabled>
+                <input type="hidden" id="modal-clase-hora-fin-hidden" name="horaFin">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">FECHA</label>
+                <input type="date" class="form-control form-control-sm" id="modal-clase-fecha" name="fechaExacta"
+                  disabled>
+                <input type="hidden" id="modal-clase-fecha-hidden" name="fechaExacta">
+              </div>
             </div>
-          </div>
 
-          <!-- Switch: ¿Grupal? -->
-          <div class="mt-3 d-flex align-items-center gap-3 p-3" style="background:#f8f5ff; border-radius:10px;">
-            <div class="form-check form-switch mb-0">
-              <input class="form-check-input" type="checkbox" role="switch"
-                     id="modal-switch-grupal" name="tipoClase" style="width:2.2em; height:1.2em;">
-              <label class="form-check-label fw-semibold ms-2" for="modal-switch-grupal" style="font-size:13px;">
-                ¿Es clase grupal? (Desactiva la selección de alumno)
-              </label>
+            <!-- Divisor -->
+            <hr class="my-3" style="border-color:#f0ebff;">
+
+            <!-- Selectores editables -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="modal-clase-salon" class="form-label fw-semibold" style="font-size:13px;">Salón</label>
+                <select class="form-select" id="modal-clase-salon" name="salon.id" required>
+                  <option value="" disabled selected>Seleccione un salón...</option>
+                  <option th:each="s : ${listSalones}" th:value="${s.id}" th:text="${s.nombre}"></option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="modal-clase-profesor" class="form-label fw-semibold"
+                  style="font-size:13px;">Profesor</label>
+                <select class="form-select" id="modal-clase-profesor" name="profesor.idProfesor" required>
+                  <option value="" disabled selected>Seleccione un profesor...</option>
+                  <option th:each="p : ${listProfesores}" th:value="${p.idProfesor}" th:text="${p.nombreProfesor}">
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="modal-clase-materia" class="form-label fw-semibold" style="font-size:13px;">Materia</label>
+                <select class="form-select" id="modal-clase-materia" name="materia.idMateria" required>
+                  <option value="" disabled selected>Seleccione una materia...</option>
+                  <option th:each="m : ${listMaterias}" th:value="${m.idMateria}" th:text="${m.nombreMateria}"></option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="modal-clase-dia" class="form-label fw-semibold" style="font-size:13px;">Día de la
+                  Semana</label>
+                <select class="form-select" id="modal-clase-dia" disabled>
+                  <option value="" disabled selected>Seleccione...</option>
+                  <option th:each="d : ${listDiasSemana}" th:value="${d.idDiaSemana}" th:text="${d.nombreDia}"></option>
+                </select>
+                <!-- Hidden input para el día de la semana (disabled ignora el post) -->
+                <input type="hidden" id="modal-clase-dia-hidden" name="diaSemana.idDiaSemana">
+              </div>
+              <!-- Selector de Alumno (Individual) -->
+              <div class="col-md-12" id="contenedor-alumno-individual">
+                <label for="modal-clase-alumnos" class="form-label fw-semibold" style="font-size:13px;">Alumno (Para
+                  clases individuales)</label>
+                <select class="form-select" id="modal-clase-alumnos" name="alumnos" required>
+                  <option value="" disabled selected>Seleccione un alumno...</option>
+                  <option th:each="a : ${listAlumnos}" th:value="${a.idAlumno}" th:text="${a.nombreAlumno}"></option>
+                </select>
+              </div>
+
+              <!-- Selector de Alumnos (Grupal) -->
+              <div class="col-md-12 d-none" id="contenedor-alumno-grupal">
+                <label class="form-label fw-semibold" style="font-size:13px;">Alumnos Inscritos (Clase Grupal)</label>
+                <div class="dropdown">
+                  <button class="form-select text-start d-flex justify-content-between align-items-center" type="button"
+                    id="dropdownAlumnosGrupales" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                    aria-expanded="false" style="background-color: #fff; color: #495057;">
+                    <span>Seleccionar estudiantes...</span>
+                    <i class="bi bi-chevron-down" style="font-size:12px;"></i>
+                  </button>
+                  <div class="dropdown-menu w-100 p-3 shadow" aria-labelledby="dropdownAlumnosGrupales"
+                    style="border-radius: 12px; border: 1px solid #e9ecef;">
+                    <div class="input-group input-group-sm mb-2">
+                      <span class="input-group-text bg-white border-end-0"><i
+                          class="bi bi-search text-muted"></i></span>
+                      <input type="text" class="form-control border-start-0 ps-0" id="search-alumnos-grupales"
+                        placeholder="Buscar alumno..." style="box-shadow: none;">
+                    </div>
+                    <div id="lista-alumnos-grupales" style="max-height: 200px; overflow-y: auto;">
+                      <div class="form-check custom-checkbox-item py-1 ms-1" th:each="a : ${listAlumnos}"
+                        style="border-bottom: 1px solid #f8f9fa;">
+                        <input class="form-check-input checkbox-alumno-grupal" type="checkbox" name="alumnos"
+                          th:value="${a.idAlumno}" th:id="'chk_grupal_' + ${a.idAlumno}"
+                          th:data-nombre="${a.nombreAlumno}" disabled>
+                        <label class="form-check-label w-100" th:for="'chk_grupal_' + ${a.idAlumno}"
+                          th:text="${a.nombreAlumno}" style="font-size: 13.5px; cursor: pointer;"></label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Contenedor donde se pintarán los alumnos seleccionados -->
+                <div id="badges-alumnos-grupales" class="mt-2 d-flex flex-wrap gap-2"></div>
+              </div>
             </div>
-          </div>
 
-          <!-- Switch: ¿Reposición? (Clase Temporal) -->
-          <div class="mt-3 d-flex align-items-center gap-3 p-3" style="background:#fffcf5; border-radius:10px; border:1px solid #ffeedb;">
-            <div class="form-check form-switch mb-0">
-              <input class="form-check-input" type="checkbox" role="switch"
-                     id="modal-switch-reposicion" name="esReposicion" value="-1" style="width:2.2em; height:1.2em;">
-              <label class="form-check-label fw-semibold ms-2" for="modal-switch-reposicion" style="font-size:13px; color:#c47100;">
-                <i class="bi bi-clock-history me-1"></i>¿Es una clase temporal / reposición? (Se eliminará automáticamente)
-              </label>
+            <!-- Switch: ¿Grupal? -->
+            <div class="mt-3 d-flex align-items-center gap-3 p-3" style="background:#f8f5ff; border-radius:10px;">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="modal-switch-grupal" name="tipoClase"
+                  style="width:2.2em; height:1.2em;">
+                <label class="form-check-label fw-semibold ms-2" for="modal-switch-grupal" style="font-size:13px;">
+                  ¿Es clase grupal? (Desactiva la selección de alumno)
+                </label>
+              </div>
             </div>
-          </div>
 
-        </div><!-- /modal-body -->
-        <div class="modal-footer border-top-0 pt-0">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal"
-                  style="border-radius:10px; font-size:14px; font-weight:500;">Cancelar</button>
-          <button type="submit" class="btn text-white"
-                  style="background:linear-gradient(135deg,#6f42c1,#5a32a3); border:none;
+            <!-- Switch: ¿Reposición? (Clase Temporal) -->
+            <div class="mt-3 d-flex align-items-center gap-3 p-3"
+              style="background:#fffcf5; border-radius:10px; border:1px solid #ffeedb;">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="modal-switch-reposicion"
+                  name="esReposicion" value="-1" style="width:2.2em; height:1.2em;">
+                <label class="form-check-label fw-semibold ms-2" for="modal-switch-reposicion"
+                  style="font-size:13px; color:#c47100;">
+                  <i class="bi bi-clock-history me-1"></i>¿Es una clase temporal / reposición? (Se eliminará
+                  automáticamente)
+                </label>
+              </div>
+            </div>
+
+          </div><!-- /modal-body -->
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+              style="border-radius:10px; font-size:14px; font-weight:500;">Cancelar</button>
+            <button type="submit" class="btn text-white" style="background:linear-gradient(135deg,#6f42c1,#5a32a3); border:none;
                          border-radius:10px; font-size:14px; font-weight:500;
                          box-shadow:0 4px 12px rgba(111,66,193,0.3);">
-            <i class="bi bi-save me-1"></i> Guardar Clase
-          </button>
-        </div>
-      </form>
+              <i class="bi bi-save me-1"></i> Guardar Clase
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
+
+  <!-- ══════════════════════════════════════════════════════
+     MODAL DE EDICIÓN DE CLASE
+     ══════════════════════════════════════════════════════ -->
+  <div class="modal fade" id="modalEditarClase" tabindex="-1" aria-labelledby="modalEditarClaseLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow" style="border-radius:16px;">
+        <div class="modal-header border-bottom-0 pb-0">
+          <div>
+            <h5 class="modal-title fw-bold" id="modalEditarClaseLabel" style="color:#1a1a2e;">
+              <i class="bi bi-pencil-square me-2" style="color:#0d6efd;"></i>Editar Clase
+            </h5>
+            <p class="mb-0 mt-1" style="font-size:13px; color:#6c757d;">Modifica los datos de la clase seleccionada.</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form th:action="@{/clases/actualizar}" method="post" id="formEditarClase">
+          <div class="modal-body pt-3">
+
+            <input type="hidden" id="edit-clase-id" name="idClase">
+
+            <!-- Hora inicio / fin (pre-llenados, no editables) -->
+            <div class="row g-2 mb-3">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">HORA INICIO</label>
+                <input type="time" class="form-control form-control-sm" id="edit-hora-inicio-display" disabled>
+                <input type="hidden" id="edit-hora-inicio-hidden" name="horaInicio">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">HORA FIN</label>
+                <input type="time" class="form-control form-control-sm" id="edit-hora-fin-display" disabled>
+                <input type="hidden" id="edit-hora-fin-hidden" name="horaFin">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">DÍA DE LA SEMANA</label>
+                <select class="form-select form-select-sm" id="edit-dia" disabled>
+                  <option th:each="d : ${listDiasSemana}" th:value="${d.idDiaSemana}" th:text="${d.nombreDia}"></option>
+                </select>
+                <input type="hidden" id="edit-dia-hidden" name="diaSemana.idDiaSemana">
+              </div>
+            </div>
+
+            <hr class="my-3" style="border-color:#f0ebff;">
+
+            <!-- Selectores editables -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="edit-salon" class="form-label fw-semibold" style="font-size:13px;">Salón</label>
+                <select class="form-select" id="edit-salon" name="salon.id" required>
+                  <option value="" disabled>Seleccione un salón...</option>
+                  <option th:each="s : ${listSalones}" th:value="${s.id}" th:text="${s.nombre}"></option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="edit-profesor" class="form-label fw-semibold" style="font-size:13px;">Profesor</label>
+                <select class="form-select" id="edit-profesor" name="profesor.idProfesor" required>
+                  <option value="" disabled>Seleccione un profesor...</option>
+                  <option th:each="p : ${listProfesores}" th:value="${p.idProfesor}" th:text="${p.nombreProfesor}">
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="edit-materia" class="form-label fw-semibold" style="font-size:13px;">Materia</label>
+                <select class="form-select" id="edit-materia" name="materia.idMateria" required>
+                  <option value="" disabled>Seleccione una materia...</option>
+                  <option th:each="m : ${listMaterias}" th:value="${m.idMateria}" th:text="${m.nombreMateria}"></option>
+                </select>
+              </div>
+              <!-- Selector de Alumno (Individual) -->
+              <div class="col-md-12" id="edit-contenedor-alumno-individual">
+                <label for="edit-alumno" class="form-label fw-semibold" style="font-size:13px;">Alumno (Para clases
+                  individuales)</label>
+                <select class="form-select" id="edit-alumno" name="alumnos">
+                  <option value="">Sin alumno asignado</option>
+                  <option th:each="a : ${listAlumnos}" th:value="${a.idAlumno}" th:text="${a.nombreAlumno}"></option>
+                </select>
+              </div>
+
+              <!-- Selector de Alumnos (Grupal) -->
+              <div class="col-md-12 d-none" id="edit-contenedor-alumno-grupal">
+                <label class="form-label fw-semibold" style="font-size:13px;">Alumnos Inscritos (Clase Grupal)</label>
+                <div class="dropdown">
+                  <button class="form-select text-start d-flex justify-content-between align-items-center" type="button"
+                    id="edit-dropdownAlumnosGrupales" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                    aria-expanded="false" style="background-color: #fff; color: #495057;">
+                    <span>Seleccionar estudiantes...</span>
+                    <i class="bi bi-chevron-down" style="font-size:12px;"></i>
+                  </button>
+                  <div class="dropdown-menu w-100 p-3 shadow" aria-labelledby="edit-dropdownAlumnosGrupales"
+                    style="border-radius: 12px; border: 1px solid #e9ecef;">
+                    <div class="input-group input-group-sm mb-2">
+                      <span class="input-group-text bg-white border-end-0"><i
+                          class="bi bi-search text-muted"></i></span>
+                      <input type="text" class="form-control border-start-0 ps-0" id="edit-search-alumnos-grupales"
+                        placeholder="Buscar alumno..." style="box-shadow: none;">
+                    </div>
+                    <div id="edit-lista-alumnos-grupales" style="max-height: 200px; overflow-y: auto;">
+                      <div class="form-check custom-checkbox-item py-1 ms-1" th:each="a : ${listAlumnos}"
+                        style="border-bottom: 1px solid #f8f9fa;">
+                        <input class="form-check-input edit-checkbox-alumno-grupal" type="checkbox" name="alumnos"
+                          th:value="${a.idAlumno}" th:id="'edit_chk_grupal_' + ${a.idAlumno}"
+                          th:data-nombre="${a.nombreAlumno}">
+                        <label class="form-check-label w-100" th:for="'edit_chk_grupal_' + ${a.idAlumno}"
+                          th:text="${a.nombreAlumno}" style="font-size: 13.5px; cursor: pointer;"></label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="edit-badges-alumnos-grupales" class="mt-2 d-flex flex-wrap gap-2"></div>
+              </div>
+            </div>
+
+            <!-- Switches -->
+            <div class="mt-3 d-flex align-items-center gap-3 p-3" style="background:#f8f5ff; border-radius:10px;">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="edit-switch-grupal" name="tipoClase"
+                  style="width:2.2em; height:1.2em;">
+                <label class="form-check-label fw-semibold ms-2" for="edit-switch-grupal" style="font-size:13px;">
+                  ¿Es clase grupal?
+                </label>
+              </div>
+            </div>
+            <div class="mt-3 d-flex align-items-center gap-3 p-3"
+              style="background:#fffcf5; border-radius:10px; border:1px solid #ffeedb;">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="edit-switch-reposicion"
+                  name="esReposicion" value="-1" style="width:2.2em; height:1.2em;">
+                <label class="form-check-label fw-semibold ms-2" for="edit-switch-reposicion"
+                  style="font-size:13px; color:#c47100;">
+                  <i class="bi bi-clock-history me-1"></i>¿Es clase temporal / reposición?
+                </label>
+              </div>
+            </div>
+
+          </div><!-- /modal-body -->
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+              style="border-radius:10px; font-size:14px; font-weight:500;">Cancelar</button>
+            <button type="submit" class="btn text-white" style="background:linear-gradient(135deg,#0d6efd,#0950c1); border:none;
+                         border-radius:10px; font-size:14px; font-weight:500;
+                         box-shadow:0 4px 12px rgba(13,110,253,0.3);">
+              <i class="bi bi-save me-1"></i> Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
     /* ──────────────────────────────────────────────────────────
        Lógica del selector de sub-vista
     ────────────────────────────────────────────────────────── */
@@ -708,619 +989,283 @@
      * @param {string} vista  - identificador de la sub-vista
      */
     function cambiarSubvista(vista) {
-        // Desactivar todos los paneles y botones de tab
-        SUBVISTAS.forEach(v => {
-            document.getElementById('panel-' + v).classList.remove('active');
-            const btn = document.getElementById('btn-tab-' + v);
-            btn.classList.remove('active');
-            btn.setAttribute('aria-selected', 'false');
-        });
+      // Desactivar todos los paneles y botones de tab
+      SUBVISTAS.forEach(v => {
+        const p = document.getElementById('panel-' + v);
+        const b = document.getElementById('btn-tab-' + v);
+        if (p) p.classList.remove('active');
+        if (b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        }
+      });
 
-        // Activar el panel y botón seleccionado
-        document.getElementById('panel-' + vista).classList.add('active');
-        const btnActivo = document.getElementById('btn-tab-' + vista);
-        btnActivo.classList.add('active');
-        btnActivo.setAttribute('aria-selected', 'true');
+      // Activar el panel y botón seleccionado
+      const panel = document.getElementById('panel-' + vista);
+      const btn = document.getElementById('btn-tab-' + vista);
+      if (panel) panel.classList.add('active');
+      if (btn) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+      }
 
-        // Persistir sub-vista activa en la URL (parámetro ?tab=)
-        const url = new URL(window.location);
-        url.searchParams.set('tab', vista);
-        history.replaceState(null, '', url);
+      // Persistir sub-vista activa en la URL
+      const url = new URL(window.location);
+      url.searchParams.set('tab', vista);
+      history.replaceState(null, '', url);
     }
 
 
     /* ─── Funciones para Modal de Salones ─── */
     function abrirModalNuevoSalon() {
-        document.getElementById('modalSalonTitle').textContent = 'Nuevo Salón';
-        document.getElementById('formSalon').reset();
-        document.getElementById('salon-id').value = '';
-        new bootstrap.Modal(document.getElementById('modalSalon')).show();
+      document.getElementById('modalSalonTitle').textContent = 'Nuevo Salón';
+      document.getElementById('formSalon').reset();
+      document.getElementById('salon-id').value = '';
+      new bootstrap.Modal(document.getElementById('modalSalon')).show();
     }
 
     function abrirModalEditarSalon(id, nombre) {
-        document.getElementById('modalSalonTitle').textContent = 'Editar Salón';
-        document.getElementById('salon-id').value = id;
-        document.getElementById('salon-nombre').value = nombre;
-        new bootstrap.Modal(document.getElementById('modalSalon')).show();
+      document.getElementById('modalSalonTitle').textContent = 'Editar Salón';
+      document.getElementById('salon-id').value = id;
+      document.getElementById('salon-nombre').value = nombre;
+      new bootstrap.Modal(document.getElementById('modalSalon')).show();
     }
-
-    /* ─── Restaurar tab desde URL al cargar la página ─── */
-    (function() {
-        const params = new URLSearchParams(window.location.search);
-        const tab = params.get('tab');
-        if (tab && SUBVISTAS.includes(tab)) {
-            cambiarSubvista(tab);
-        }
-    })();
 
     /* ──────────────────────────────────────────────────────
        Cuadrícula de Horarios — Construcción Dinamica
     ────────────────────────────────────────────────────── */
     const BLOQUES_HORARIOS = [
-        { inicio: '07:00', fin: '08:00' },
-        { inicio: '08:00', fin: '09:00' },
-        { inicio: '09:00', fin: '10:00' },
-        { inicio: '10:00', fin: '11:00' },
-        { inicio: '11:00', fin: '12:00' },
-        { inicio: '12:00', fin: '13:00' },
-        { inicio: '13:00', fin: '14:00' },
-        { inicio: '14:00', fin: '15:00' },
-        { inicio: '15:00', fin: '16:00' },
-        { inicio: '16:00', fin: '17:00' },
-        { inicio: '17:00', fin: '18:00' },
-        { inicio: '18:00', fin: '19:00' },
-        { inicio: '19:00', fin: '20:00' },
+      { inicio: '07:00', fin: '08:00' },
+      { inicio: '08:00', fin: '09:00' },
+      { inicio: '09:00', fin: '10:00' },
+      { inicio: '10:00', fin: '11:00' },
+      { inicio: '11:00', fin: '12:00' },
+      { inicio: '12:00', fin: '13:00' },
+      { inicio: '13:00', fin: '14:00' },
+      { inicio: '14:00', fin: '15:00' },
+      { inicio: '15:00', fin: '16:00' },
+      { inicio: '16:00', fin: '17:00' },
+      { inicio: '17:00', fin: '18:00' },
+      { inicio: '18:00', fin: '19:00' },
+      { inicio: '19:00', fin: '20:00' },
+      { inicio: '20:00', fin: '21:00' },
+      { inicio: '21:00', fin: '22:00' },
     ];
 
-    // Recoger los nombres de días desde el encabezado de la tabla generado por Thymeleaf
-    const diasHeaders = Array.from(document.querySelectorAll('#tabla-horarios thead th')).slice(1);
-
     function buildHorario() {
-        const tbody = document.querySelector('#tabla-horarios tbody');
-        if (!tbody || diasHeaders.length === 0) return;
+      const tbody = document.querySelector('#tabla-horarios tbody');
+      const diasHeaders = Array.from(document.querySelectorAll('#tabla-horarios thead th')).slice(1);
+      if (!tbody || diasHeaders.length === 0) return;
 
-        // Leer clases guardadas desde el DOM
-        const clasesGuardadas = [];
-        document.querySelectorAll('.clase-item').forEach(el => {
-            let primerAlumno = el.getAttribute('data-primer-alumno') || '';
-            let cantAlumnos = parseInt(el.getAttribute('data-cantidad-alumnos') || '0');
-            let textoAlumno = '';
-            if (cantAlumnos === 1) {
-                textoAlumno = primerAlumno;
-            } else if (cantAlumnos > 1) {
-                textoAlumno = primerAlumno + '...';
-            } else {
-                textoAlumno = 'Sin alumnos asignados';
-            }
+      const clasesGuardadas = [];
+      document.querySelectorAll('.clase-item').forEach(el => {
+        let primerAlumno = el.getAttribute('data-primer-alumno') || '';
+        let cantAlumnos = parseInt(el.getAttribute('data-cantidad-alumnos') || '0');
+        let textoAlumno = (cantAlumnos === 1) ? primerAlumno : (cantAlumnos > 1 ? primerAlumno + '...' : 'Sin alumnos');
 
-            clasesGuardadas.push({
-                id: el.getAttribute('data-id'),
-                horaInicio: el.getAttribute('data-hora-inicio'),
-                horaFin: el.getAttribute('data-hora-fin'),
-                dia: el.getAttribute('data-dia'),
-                idDia: el.getAttribute('data-id-dia'),
-                materia: el.getAttribute('data-materia'),
-                idMateria: el.getAttribute('data-id-materia'),
-                profesor: el.getAttribute('data-profesor'),
-                idProfesor: el.getAttribute('data-id-profesor'),
-                salon: el.getAttribute('data-salon'),
-                idSalon: el.getAttribute('data-id-salon'),
-                alumno: textoAlumno,
-                idAlumno: el.getAttribute('data-id-alumno'),
-                idsAlumnos: el.getAttribute('data-ids-alumnos') || '',
-                tipoClase: el.getAttribute('data-tipo-clase') === 'true',
-                esTemporal: el.getAttribute('data-es-temporal') === 'true'
-            });
+        clasesGuardadas.push({
+          id: el.getAttribute('data-id'),
+          horaInicio: el.getAttribute('data-hora-inicio'),
+          horaFin: el.getAttribute('data-hora-fin'),
+          dia: el.getAttribute('data-dia'),
+          idDia: el.getAttribute('data-id-dia'),
+          materia: el.getAttribute('data-materia'),
+          idMateria: el.getAttribute('data-id-materia'),
+          profesor: el.getAttribute('data-profesor'),
+          idProfesor: el.getAttribute('data-id-profesor'),
+          salon: el.getAttribute('data-salon'),
+          idSalon: el.getAttribute('data-id-salon'),
+          alumno: textoAlumno,
+          idAlumno: el.getAttribute('data-id-alumno'),
+          idsAlumnos: el.getAttribute('data-ids-alumnos') || '',
+          tipoClase: el.getAttribute('data-tipo-clase') === 'true',
+          esTemporal: el.getAttribute('data-es-temporal') === 'true'
         });
+      });
 
-        tbody.innerHTML = '';
-        BLOQUES_HORARIOS.forEach(bloque => {
-            const tr = document.createElement('tr');
-            // Celda de hora
-            const tdHora = document.createElement('td');
-            tdHora.style.cssText = 'font-size:12px; font-weight:600; color:#6f42c1; white-space:nowrap;';
-            tdHora.textContent = bloque.inicio + ' – ' + bloque.fin;
-            tr.appendChild(tdHora);
+      tbody.innerHTML = '';
+      BLOQUES_HORARIOS.forEach(bloque => {
+        const tr = document.createElement('tr');
+        const tdHora = document.createElement('td');
+        tdHora.style.cssText = 'font-size:12px; font-weight:600; color:#6f42c1; white-space:nowrap;';
+        tdHora.textContent = bloque.inicio + ' – ' + bloque.fin;
+        tr.appendChild(tdHora);
 
-            // Una celda por día
-            diasHeaders.forEach(thDia => {
-                const nombreDia = thDia.textContent.trim();
-                const td = document.createElement('td');
-                td.style.cssText = 'text-align:center; vertical-align:top; padding:4px;';
+        diasHeaders.forEach(thDia => {
+          const nombreDia = thDia.textContent.trim();
+          const td = document.createElement('td');
+          td.style.cssText = 'text-align:center; vertical-align:top; padding:4px;';
 
-                // Buscar TODAS las clases que empiezan en este bloque y día (puede haber más de una)
-                const clasesEnCelda = clasesGuardadas.filter(c =>
-                    c.horaInicio && c.horaInicio.startsWith(bloque.inicio) &&
-                    c.dia.toLowerCase() === nombreDia.toLowerCase()
-                );
+          const clasesEnCelda = clasesGuardadas.filter(c =>
+            c.horaInicio && c.horaInicio.startsWith(bloque.inicio) &&
+            c.dia.toLowerCase() === nombreDia.toLowerCase()
+          );
 
-                // Contenedor vertical para apilar tarjetas + botón
-                const wrapper = document.createElement('div');
-                wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:4px; min-width:130px;';
+          const wrapper = document.createElement('div');
+          wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:4px; min-width:130px;';
 
-                // Renderizar TODAS las clases encontradas en la celda
-                clasesEnCelda.forEach(clase => {
-                    const card = document.createElement('div');
-                    card.style.cssText = 'background:#f8f5ff; border:1px solid #dcd1f9; border-radius:8px; padding:6px 8px; font-size:11px; text-align:left; position:relative; width:100%; padding-right:46px;';
-                    card.innerHTML = `
+          clasesEnCelda.forEach(clase => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background:#f8f5ff; border:1px solid #dcd1f9; border-radius:8px; padding:6px 8px; font-size:11px; text-align:left; position:relative; width:100%; padding-right:46px;';
+            card.innerHTML = `
                         <div style="font-weight:700; color:#5a32a3; margin-bottom:2px;">
-                            ${clase.materia}
-                            ${clase.esTemporal ? '<i class="bi bi-clock-history ms-1 text-warning" title="Clase Temporal"></i>' : ''}
+                            ${clase.materia} ${clase.esTemporal ? '<i class="bi bi-clock-history ms-1 text-warning"></i>' : ''}
                         </div>
                         <div style="color:#6c757d; font-size:10px;"><i class="bi bi-person-badge me-1"></i>${clase.profesor}</div>
                         <div style="color:#6c757d; font-size:10px;"><i class="bi bi-people me-1"></i>${clase.alumno}</div>
                         <div style="color:#6c757d; font-size:10px;"><i class="bi bi-building me-1"></i>${clase.salon}</div>
                         <div style="position:absolute; top:4px; right:4px; display:flex; flex-direction:column; gap:3px;">
-                            <button type="button"
-                               onclick="abrirModalEditarClase('${clase.id}','${clase.horaInicio}','${clase.horaFin}','${clase.idDia}','${clase.idSalon}','${clase.idProfesor}','${clase.idMateria}','${clase.idAlumno}','${clase.tipoClase}','${clase.esTemporal}','${clase.idsAlumnos}')"
-                               style="padding:2px 5px; font-size:10px; border-radius:4px; background:#0d6efd; color:#fff; border:none; cursor:pointer;"
-                               title="Editar clase">
-                                <i class="bi bi-pencil-fill"></i>
-                            </button>
-                            <a href="/clases/eliminar/${clase.id}"
-                               onclick="return confirm('\u00bfEliminar esta clase?');"
-                               style="display:inline-block; padding:2px 5px; font-size:10px; border-radius:4px; background:#dc3545; color:#fff; border:none; text-decoration:none;"
-                               title="Eliminar clase">
-                                <i class="bi bi-trash-fill"></i>
-                            </a>
+                            <button type="button" onclick="abrirModalEditarClase('${clase.id}','${clase.horaInicio}','${clase.horaFin}','${clase.idDia}','${clase.idSalon}','${clase.idProfesor}','${clase.idMateria}','${clase.idAlumno}','${clase.tipoClase}','${clase.esTemporal}','${clase.idsAlumnos}')"
+                                    style="padding:2px 5px; font-size:10px; border-radius:4px; background:#0d6efd; color:#fff; border:none; cursor:pointer;"><i class="bi bi-pencil-fill"></i></button>
+                            <a href="/clases/eliminar/${clase.id}" onclick="return confirm('\u00bfEliminar?');"
+                               style="padding:2px 5px; font-size:10px; border-radius:4px; background:#dc3545; color:#fff; text-decoration:none;"><i class="bi bi-trash-fill"></i></a>
                         </div>
                     `;
-                    wrapper.appendChild(card);
-                });
+            wrapper.appendChild(card);
+          });
 
-                // Siempre mostrar el botón Registrar para agregar otra clase en ese bloque/día
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn btn-sm';
-                btn.style.cssText = 'font-size:11px; border-radius:8px; border:1.5px solid #6f42c1; color:#6f42c1; background:transparent; padding:3px 10px; transition:all 0.2s; width:100%;';
-                btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Registrar';
-                btn.addEventListener('mouseenter', () => { btn.style.background = '#6f42c1'; btn.style.color = '#fff'; });
-                btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; btn.style.color = '#6f42c1'; });
-                btn.onclick = () => abrirModalClase(bloque.inicio, bloque.fin, nombreDia, null);
-                wrapper.appendChild(btn);
+          const btn = document.createElement('button');
+          btn.type = 'button'; btn.className = 'btn btn-sm';
+          btn.style.cssText = 'font-size:11px; border-radius:8px; border:1.5px solid #6f42c1; color:#6f42c1; background:transparent; padding:3px 10px; width:100%;';
+          btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Registrar';
+          btn.onclick = () => abrirModalClase(bloque.inicio, bloque.fin, nombreDia, null);
+          wrapper.appendChild(btn);
 
-                td.appendChild(wrapper);
-                tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
+          td.appendChild(wrapper);
+          tr.appendChild(td);
         });
+        tbody.appendChild(tr);
+      });
     }
 
-    /* ──────────────────────────────────────────────────────
-       Configuración del switch Grupal y el Multi-Select de alumnos
-    ────────────────────────────────────────────────────── */
-    const switchGrupal = document.getElementById('modal-switch-grupal');
-    const contIndividual = document.getElementById('contenedor-alumno-individual');
-    const selectIndividual = document.getElementById('modal-clase-alumnos');
-    const contGrupal = document.getElementById('contenedor-alumno-grupal');
-    const checkboxesGrupal = document.querySelectorAll('.checkbox-alumno-grupal');
-    const badgesContainer = document.getElementById('badges-alumnos-grupales');
-    const searchAlumnosGrupales = document.getElementById('search-alumnos-grupales');
+    // Variables globales
+    let switchGrupal, contIndividual, selectIndividual, contGrupal, checkboxesGrupal, badgesContainer, searchAlumnosGrupales;
+    let editSwitchGrupal, editContIndividual, editSelectIndividual, editContGrupal, editCheckboxesGrupal, editBadgesContainer, editSearchAlumnosGrupales;
 
-    // Función para actualizar los badges cuando se seleccionan checkboxes
     function actualizarBadgesGrupales() {
-        if (!badgesContainer) return;
-        badgesContainer.innerHTML = '';
-        let seleccionados = 0;
-        checkboxesGrupal.forEach(chk => {
-            if (chk.checked) {
-                seleccionados++;
-                const badge = document.createElement('span');
-                badge.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
-                badge.style.fontSize = '12px';
-                badge.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted cursor-pointer btn-remove-badge" style="cursor:pointer;" data-id="${chk.id}"></i>`;
-                badgesContainer.appendChild(badge);
-            }
-        });
-        
-        // Agregar eventos de eliminar a las cruces de los badges
-        document.querySelectorAll('.btn-remove-badge').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const chkId = this.getAttribute('data-id');
-                document.getElementById(chkId).checked = false;
-                actualizarBadgesGrupales();
-            });
-        });
-
-        const btnDropdown = document.getElementById('dropdownAlumnosGrupales');
-        if (!btnDropdown) return;
-        const btnSpan = btnDropdown.querySelector('span');
-        if (seleccionados > 0) {
-            btnSpan.textContent = `${seleccionados} alumno(s) seleccionado(s)`;
-            btnSpan.classList.add('fw-bold', 'text-primary');
-        } else {
-            btnSpan.textContent = 'Seleccionar estudiantes...';
-            btnSpan.classList.remove('fw-bold', 'text-primary');
+      if (!badgesContainer) return;
+      badgesContainer.innerHTML = '';
+      let sel = 0;
+      checkboxesGrupal.forEach(chk => {
+        if (chk.checked) {
+          sel++;
+          const b = document.createElement('span');
+          b.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
+          b.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted btn-remove-badge" style="cursor:pointer;" data-id="${chk.id}"></i>`;
+          badgesContainer.appendChild(b);
         }
-    }
-
-    // Evento de cambio en los checkboxes para actualizar los badges
-    checkboxesGrupal.forEach(chk => {
-        chk.addEventListener('change', actualizarBadgesGrupales);
-    });
-
-    // Lógica del buscador en la lista de checkboxes
-    if (searchAlumnosGrupales) {
-        searchAlumnosGrupales.addEventListener('input', function() {
-            const text = this.value.toLowerCase();
-            document.querySelectorAll('#lista-alumnos-grupales .custom-checkbox-item').forEach(item => {
-                const label = item.querySelector('label').textContent.toLowerCase();
-                if (label.includes(text)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    }
-
-    // Evento del Switch Grupal
-    if (switchGrupal) {
-        switchGrupal.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                // Activar modo grupal
-                contIndividual.classList.add('d-none');
-                selectIndividual.disabled = true;
-                selectIndividual.required = false;
-
-                contGrupal.classList.remove('d-none');
-                checkboxesGrupal.forEach(chk => chk.disabled = false);
-            } else {
-                // Activar modo individual
-                contGrupal.classList.add('d-none');
-                checkboxesGrupal.forEach(chk => chk.disabled = true);
-
-                contIndividual.classList.remove('d-none');
-                selectIndividual.disabled = false;
-                selectIndividual.required = true;
-            }
-        });
-    }
-
-    /* ──────────────────────────────────────────────────────
-       Modal de Clase — Apertura con contexto
-    ────────────────────────────────────────────────────── */
-
-    /**
-     * Abre el modal de registro de clase pre-llenado con el contexto
-     * de la celda seleccionada en la cuadrícula.
-     *
-     * @param {string} horaInicio  - Ej. '08:00'
-     * @param {string} horaFin     - Ej. '09:00'
-     * @param {string} nombreDia   - Nombre del día (ej. 'Lunes')
-     * @param {string|null} fecha  - ISO date opcional (null = hoy)
-     */
-    function abrirModalClase(horaInicio, horaFin, nombreDia, fecha) {
-        // Calcular la fecha si no fue provista
-        const hoy = new Date();
-        const diaNombres = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-        let fechaCalc = fecha;
-        if (!fechaCalc) {
-            // Encontrar la próxima ocurrencia del día de la semana
-            const idxTarget = diaNombres.indexOf(nombreDia);
-            const idxHoy = hoy.getDay();
-            let diff = idxTarget - idxHoy;
-            if (diff <= 0) diff += 7;
-            const proxFecha = new Date(hoy);
-            proxFecha.setDate(hoy.getDate() + diff);
-            fechaCalc = proxFecha.toISOString().split('T')[0];
-        }
-
-        // Pre-llenar campos informativos (deshabilitados)
-        document.getElementById('modal-clase-titulo').textContent =
-            horaInicio + ' – ' + horaFin + '  |  ' + nombreDia;
-        document.getElementById('modal-clase-hora-inicio').value = horaInicio;
-        document.getElementById('modal-clase-hora-fin').value    = horaFin;
-        document.getElementById('modal-clase-fecha').value       = fechaCalc;
-        // Sincronizar hidden inputs (los disabled no viajan en el POST)
-        document.getElementById('modal-clase-hora-inicio-hidden').value = horaInicio;
-        document.getElementById('modal-clase-hora-fin-hidden').value    = horaFin;
-        document.getElementById('modal-clase-fecha-hidden').value       = fechaCalc;
-
-        // Seleccionar y bloquear el día
-        const selectDia = document.getElementById('modal-clase-dia');
-        let idDiaEncontrado = '';
-        Array.from(selectDia.options).forEach(opt => {
-            if (opt.text.toLowerCase() === nombreDia.toLowerCase()) {
-                opt.selected = true;
-                idDiaEncontrado = opt.value;
-            }
-        });
-        document.getElementById('modal-clase-dia-hidden').value = idDiaEncontrado;
-
-        // Resetear los selectores editables y vaciar formClase explícitamente
-        document.getElementById('formClase').reset();
-        
-        document.getElementById('modal-switch-grupal').checked = false;
-        // Lanzamos el evento change para que se ejecute la lógica del modo individual
-        document.getElementById('modal-switch-grupal').dispatchEvent(new Event('change'));
-
-        document.getElementById('modal-switch-reposicion').checked = false;
-
-        // Limpiar búsqueda del grupal y actualizar badges
-        document.getElementById('search-alumnos-grupales').value = '';
-        document.getElementById('search-alumnos-grupales').dispatchEvent(new Event('input'));
+      });
+      document.querySelectorAll('.btn-remove-badge').forEach(b => b.onclick = function () {
+        document.getElementById(this.getAttribute('data-id')).checked = false;
         actualizarBadgesGrupales();
-
-        new bootstrap.Modal(document.getElementById('modalClase')).show();
+      });
+      const span = document.querySelector('#dropdownAlumnosGrupales span');
+      if (span) span.textContent = sel > 0 ? `${sel} alumno(s)` : 'Seleccionar estudiantes...';
     }
-
-    /* ──────────────────────────────────────────────────────
-       Configuración del switch Grupal y el Multi-Select en EDIT
-    ────────────────────────────────────────────────────── */
-    const editSwitchGrupal = document.getElementById('edit-switch-grupal');
-    const editContIndividual = document.getElementById('edit-contenedor-alumno-individual');
-    const editSelectIndividual = document.getElementById('edit-alumno');
-    const editContGrupal = document.getElementById('edit-contenedor-alumno-grupal');
-    const editCheckboxesGrupal = document.querySelectorAll('.edit-checkbox-alumno-grupal');
-    const editBadgesContainer = document.getElementById('edit-badges-alumnos-grupales');
-    const editSearchAlumnosGrupales = document.getElementById('edit-search-alumnos-grupales');
 
     function actualizarBadgesGrupalesEdit() {
-        if (!editBadgesContainer) return;
-        editBadgesContainer.innerHTML = '';
-        let seleccionados = 0;
-        editCheckboxesGrupal.forEach(chk => {
-            if (chk.checked) {
-                seleccionados++;
-                const badge = document.createElement('span');
-                badge.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
-                badge.style.fontSize = '12px';
-                badge.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted cursor-pointer btn-remove-badge-edit" style="cursor:pointer;" data-id="${chk.id}"></i>`;
-                editBadgesContainer.appendChild(badge);
-            }
-        });
-        
-        document.querySelectorAll('.btn-remove-badge-edit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const chkId = this.getAttribute('data-id');
-                document.getElementById(chkId).checked = false;
-                actualizarBadgesGrupalesEdit();
-            });
-        });
-
-        const btnDropdown = document.getElementById('edit-dropdownAlumnosGrupales');
-        if (!btnDropdown) return;
-        const btnSpan = btnDropdown.querySelector('span');
-        if (seleccionados > 0) {
-            btnSpan.textContent = `${seleccionados} alumno(s) seleccionado(s)`;
-            btnSpan.classList.add('fw-bold', 'text-primary');
-        } else {
-            btnSpan.textContent = 'Seleccionar estudiantes...';
-            btnSpan.classList.remove('fw-bold', 'text-primary');
+      if (!editBadgesContainer) return;
+      editBadgesContainer.innerHTML = '';
+      let sel = 0;
+      editCheckboxesGrupal.forEach(chk => {
+        if (chk.checked) {
+          sel++;
+          const b = document.createElement('span');
+          b.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
+          b.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted btn-remove-badge-edit" style="cursor:pointer;" data-id="${chk.id}"></i>`;
+          editBadgesContainer.appendChild(b);
         }
-    }
-
-    editCheckboxesGrupal.forEach(chk => {
-        chk.addEventListener('change', actualizarBadgesGrupalesEdit);
-    });
-
-    if (editSearchAlumnosGrupales) {
-        editSearchAlumnosGrupales.addEventListener('input', function() {
-            const text = this.value.toLowerCase();
-            document.querySelectorAll('#edit-lista-alumnos-grupales .custom-checkbox-item').forEach(item => {
-                const label = item.querySelector('label').textContent.toLowerCase();
-                item.style.display = label.includes(text) ? 'block' : 'none';
-            });
-        });
-    }
-
-    if (editSwitchGrupal) {
-        editSwitchGrupal.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                editContIndividual.classList.add('d-none');
-                editSelectIndividual.disabled = true;
-                editSelectIndividual.required = false;
-                editContGrupal.classList.remove('d-none');
-                editCheckboxesGrupal.forEach(chk => chk.disabled = false);
-            } else {
-                editContGrupal.classList.add('d-none');
-                editCheckboxesGrupal.forEach(chk => chk.disabled = true);
-                editContIndividual.classList.remove('d-none');
-                editSelectIndividual.disabled = false;
-                editSelectIndividual.required = true;
-            }
-        });
-    }
-
-    /* Switches dentro del modal */
-    document.addEventListener('DOMContentLoaded', function () {
-        // Construir cuadrícula al cargar
-        buildHorario();
-    });
-
-    /* ──────────────────────────────────────────────────────
-       Modal de Edición de Clase — Apertura con datos pre-llenados
-    ────────────────────────────────────────────────────── */
-    function abrirModalEditarClase(id, horaInicio, horaFin, idDia, idSalon, idProfesor, idMateria, idAlumno, tipoClase, esTemporal, idsAlumnos) {
-        // Pre-llenar campos ocultos de identificación
-        document.getElementById('edit-clase-id').value = id;
-
-        // Hora inicio/fin — quitar segundos si vienen como "HH:MM:SS"
-        const hi = horaInicio.length > 5 ? horaInicio.substring(0, 5) : horaInicio;
-        const hf = horaFin.length > 5 ? horaFin.substring(0, 5) : horaFin;
-        document.getElementById('edit-hora-inicio-display').value = hi;
-        document.getElementById('edit-hora-inicio-hidden').value  = hi;
-        document.getElementById('edit-hora-fin-display').value    = hf;
-        document.getElementById('edit-hora-fin-hidden').value     = hf;
-
-        // Selectores
-        document.getElementById('edit-salon').value   = idSalon   || '';
-        document.getElementById('edit-profesor').value = idProfesor || '';
-        document.getElementById('edit-materia').value = idMateria  || '';
-        
-        // Día (select bloqueado — solo informativo)
-        const selDia = document.getElementById('edit-dia');
-        Array.from(selDia.options).forEach(o => o.selected = o.value == idDia);
-        document.getElementById('edit-dia-hidden').value = idDia || '';
-
-        // Limpiar checkboxes grupales y búsqueda antes de pre-llenar
-        editCheckboxesGrupal.forEach(chk => chk.checked = false);
-        editSearchAlumnosGrupales.value = '';
-        editSearchAlumnosGrupales.dispatchEvent(new Event('input'));
-
-        // Lógica de alumnos según el tipo de clase
-        const esGrupal = (tipoClase === 'true');
-        document.getElementById('edit-switch-grupal').checked = esGrupal;
-        
-        if (esGrupal) {
-            // Pre-seleccionar checkboxes grupales
-            const idsArray = idsAlumnos ? idsAlumnos.split(',') : [];
-            idsArray.forEach(idA => {
-                const chk = document.getElementById('edit_chk_grupal_' + idA);
-                if (chk) chk.checked = true;
-            });
-            document.getElementById('edit-alumno').value = ''; // Limpiar individual
-        } else {
-            document.getElementById('edit-alumno').value = idAlumno || ''; // Llenar individual
-        }
-
-        // Forzar actualización de UI (containers y badges)
-        document.getElementById('edit-switch-grupal').dispatchEvent(new Event('change'));
+      });
+      document.querySelectorAll('.btn-remove-badge-edit').forEach(b => b.onclick = function () {
+        document.getElementById(this.getAttribute('data-id')).checked = false;
         actualizarBadgesGrupalesEdit();
-
-        // Switch reposición
-        document.getElementById('edit-switch-reposicion').checked = esTemporal === 'true';
-
-        new bootstrap.Modal(document.getElementById('modalEditarClase')).show();
+      });
+      const span = document.querySelector('#edit-dropdownAlumnosGrupales span');
+      if (span) span.textContent = sel > 0 ? `${sel} alumno(s)` : 'Seleccionar estudiantes...';
     }
-</script>
 
-<!-- ══════════════════════════════════════════════════════
-     MODAL DE EDICIÓN DE CLASE
-     ══════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalEditarClase" tabindex="-1" aria-labelledby="modalEditarClaseLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content border-0 shadow" style="border-radius:16px;">
-      <div class="modal-header border-bottom-0 pb-0">
-        <div>
-          <h5 class="modal-title fw-bold" id="modalEditarClaseLabel" style="color:#1a1a2e;">
-            <i class="bi bi-pencil-square me-2" style="color:#0d6efd;"></i>Editar Clase
-          </h5>
-          <p class="mb-0 mt-1" style="font-size:13px; color:#6c757d;">Modifica los datos de la clase seleccionada.</p>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <form th:action="@{/clases/actualizar}" method="post" id="formEditarClase">
-        <div class="modal-body pt-3">
+    function abrirModalClase(hI, hF, nD, f) {
+      document.getElementById('modal-clase-titulo').textContent = hI + ' – ' + hF + ' | ' + nD;
+      document.getElementById('modal-clase-hora-inicio-hidden').value = hI;
+      document.getElementById('modal-clase-hora-fin-hidden').value = hF;
+      document.getElementById('formClase').reset();
+      document.getElementById('modal-switch-grupal').checked = false;
+      document.getElementById('modal-switch-grupal').dispatchEvent(new Event('change'));
+      new bootstrap.Modal(document.getElementById('modalClase')).show();
+    }
 
-          <input type="hidden" id="edit-clase-id" name="idClase">
+    function abrirModalEditarClase(id, hI, hF, idD, idS, idP, idM, idA, tipo, temp, idsA) {
+      document.getElementById('edit-clase-id').value = id;
+      document.getElementById('edit-hora-inicio-display').value = hI.substring(0, 5);
+      document.getElementById('edit-hora-inicio-hidden').value = hI.substring(0, 5);
+      document.getElementById('edit-hora-fin-display').value = hF.substring(0, 5);
+      document.getElementById('edit-hora-fin-hidden').value = hF.substring(0, 5);
+      document.getElementById('edit-salon').value = idS || '';
+      document.getElementById('edit-profesor').value = idP || '';
+      document.getElementById('edit-materia').value = idM || '';
+      document.getElementById('edit-dia-hidden').value = idD || '';
 
-          <!-- Hora inicio / fin (pre-llenados, no editables) -->
-          <div class="row g-2 mb-3">
-            <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">HORA INICIO</label>
-              <input type="time" class="form-control form-control-sm" id="edit-hora-inicio-display" disabled>
-              <input type="hidden" id="edit-hora-inicio-hidden" name="horaInicio">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">HORA FIN</label>
-              <input type="time" class="form-control form-control-sm" id="edit-hora-fin-display" disabled>
-              <input type="hidden" id="edit-hora-fin-hidden" name="horaFin">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:12px; color:#6c757d;">DÍA DE LA SEMANA</label>
-              <select class="form-select form-select-sm" id="edit-dia" disabled>
-                <option th:each="d : ${listDiasSemana}" th:value="${d.idDiaSemana}" th:text="${d.nombreDia}"></option>
-              </select>
-              <input type="hidden" id="edit-dia-hidden" name="diaSemana.idDiaSemana">
-            </div>
-          </div>
+      editCheckboxesGrupal.forEach(chk => chk.checked = false);
+      const esG = (tipo === true || tipo === 'true');
+      document.getElementById('edit-switch-grupal').checked = esG;
+      if (esG) {
+        const ids = (idsA && idsA !== 'null' && idsA !== '') ? idsA.split(',') : [];
+        ids.forEach(i => {
+          const chk = document.getElementById('edit_chk_grupal_' + i.trim());
+          if (chk) chk.checked = true;
+        });
+        document.getElementById('edit-alumno').value = '';
+      } else {
+        document.getElementById('edit-alumno').value = (idA === 'null' || !idA) ? '' : idA;
+      }
+      document.getElementById('edit-switch-grupal').dispatchEvent(new Event('change'));
+      actualizarBadgesGrupalesEdit();
+      document.getElementById('edit-switch-reposicion').checked = (temp === true || temp === 'true');
+      new bootstrap.Modal(document.getElementById('modalEditarClase')).show();
+    }
 
-          <hr class="my-3" style="border-color:#f0ebff;">
+    document.addEventListener('DOMContentLoaded', function () {
+      switchGrupal = document.getElementById('modal-switch-grupal');
+      contIndividual = document.getElementById('contenedor-alumno-individual');
+      selectIndividual = document.getElementById('modal-clase-alumnos');
+      contGrupal = document.getElementById('contenedor-alumno-grupal');
+      checkboxesGrupal = document.querySelectorAll('.checkbox-alumno-grupal');
+      badgesContainer = document.getElementById('badges-alumnos-grupales');
+      searchAlumnosGrupales = document.getElementById('search-alumnos-grupales');
 
-          <!-- Selectores editables -->
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="edit-salon" class="form-label fw-semibold" style="font-size:13px;">Salón</label>
-              <select class="form-select" id="edit-salon" name="salon.id" required>
-                <option value="" disabled>Seleccione un salón...</option>
-                <option th:each="s : ${listSalones}" th:value="${s.id}" th:text="${s.nombre}"></option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label for="edit-profesor" class="form-label fw-semibold" style="font-size:13px;">Profesor</label>
-              <select class="form-select" id="edit-profesor" name="profesor.idProfesor" required>
-                <option value="" disabled>Seleccione un profesor...</option>
-                <option th:each="p : ${listProfesores}" th:value="${p.idProfesor}" th:text="${p.nombreProfesor}"></option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label for="edit-materia" class="form-label fw-semibold" style="font-size:13px;">Materia</label>
-              <select class="form-select" id="edit-materia" name="materia.idMateria" required>
-                <option value="" disabled>Seleccione una materia...</option>
-                <option th:each="m : ${listMaterias}" th:value="${m.idMateria}" th:text="${m.nombreMateria}"></option>
-              </select>
-            </div>
-            <!-- Selector de Alumno (Individual) -->
-            <div class="col-md-12" id="edit-contenedor-alumno-individual">
-              <label for="edit-alumno" class="form-label fw-semibold" style="font-size:13px;">Alumno (Para clases individuales)</label>
-              <select class="form-select" id="edit-alumno" name="alumnos">
-                <option value="">Sin alumno asignado</option>
-                <option th:each="a : ${listAlumnos}" th:value="${a.idAlumno}" th:text="${a.nombreAlumno}"></option>
-              </select>
-            </div>
+      editSwitchGrupal = document.getElementById('edit-switch-grupal');
+      editContIndividual = document.getElementById('edit-contenedor-alumno-individual');
+      editSelectIndividual = document.getElementById('edit-alumno');
+      editContGrupal = document.getElementById('edit-contenedor-alumno-grupal');
+      editCheckboxesGrupal = document.querySelectorAll('.edit-checkbox-alumno-grupal');
+      editBadgesContainer = document.getElementById('edit-badges-alumnos-grupales');
+      editSearchAlumnosGrupales = document.getElementById('edit-search-alumnos-grupales');
 
-            <!-- Selector de Alumnos (Grupal) -->
-            <div class="col-md-12 d-none" id="edit-contenedor-alumno-grupal">
-              <label class="form-label fw-semibold" style="font-size:13px;">Alumnos Inscritos (Clase Grupal)</label>
-              <div class="dropdown">
-                  <button class="form-select text-start d-flex justify-content-between align-items-center" type="button" id="edit-dropdownAlumnosGrupales" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="background-color: #fff; color: #495057;">
-                      <span>Seleccionar estudiantes...</span>
-                      <i class="bi bi-chevron-down" style="font-size:12px;"></i>
-                  </button>
-                  <div class="dropdown-menu w-100 p-3 shadow" aria-labelledby="edit-dropdownAlumnosGrupales" style="border-radius: 12px; border: 1px solid #e9ecef;">
-                      <div class="input-group input-group-sm mb-2">
-                          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                          <input type="text" class="form-control border-start-0 ps-0" id="edit-search-alumnos-grupales" placeholder="Buscar alumno..." style="box-shadow: none;">
-                      </div>
-                      <div id="edit-lista-alumnos-grupales" style="max-height: 200px; overflow-y: auto;">
-                          <div class="form-check custom-checkbox-item py-1 ms-1" th:each="a : ${listAlumnos}" style="border-bottom: 1px solid #f8f9fa;">
-                              <input class="form-check-input edit-checkbox-alumno-grupal" type="checkbox" name="alumnos" th:value="${a.idAlumno}" th:id="'edit_chk_grupal_' + ${a.idAlumno}" th:data-nombre="${a.nombreAlumno}">
-                              <label class="form-check-label w-100" th:for="'edit_chk_grupal_' + ${a.idAlumno}" th:text="${a.nombreAlumno}" style="font-size: 13.5px; cursor: pointer;"></label>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-              <div id="edit-badges-alumnos-grupales" class="mt-2 d-flex flex-wrap gap-2"></div>
-            </div>
-          </div>
+      if (switchGrupal) {
+        switchGrupal.addEventListener('change', function (e) {
+          contIndividual.classList.toggle('d-none', e.target.checked);
+          selectIndividual.disabled = e.target.checked;
+          selectIndividual.required = !e.target.checked;
+          contGrupal.classList.toggle('d-none', !e.target.checked);
+          checkboxesGrupal.forEach(chk => chk.disabled = !e.target.checked);
+        });
+      }
+      checkboxesGrupal.forEach(chk => chk.addEventListener('change', actualizarBadgesGrupales));
 
-          <!-- Switches -->
-          <div class="mt-3 d-flex align-items-center gap-3 p-3" style="background:#f8f5ff; border-radius:10px;">
-            <div class="form-check form-switch mb-0">
-              <input class="form-check-input" type="checkbox" role="switch"
-                     id="edit-switch-grupal" name="tipoClase" style="width:2.2em; height:1.2em;">
-              <label class="form-check-label fw-semibold ms-2" for="edit-switch-grupal" style="font-size:13px;">
-                ¿Es clase grupal?
-              </label>
-            </div>
-          </div>
-          <div class="mt-3 d-flex align-items-center gap-3 p-3" style="background:#fffcf5; border-radius:10px; border:1px solid #ffeedb;">
-            <div class="form-check form-switch mb-0">
-              <input class="form-check-input" type="checkbox" role="switch"
-                     id="edit-switch-reposicion" name="esReposicion" value="-1" style="width:2.2em; height:1.2em;">
-              <label class="form-check-label fw-semibold ms-2" for="edit-switch-reposicion" style="font-size:13px; color:#c47100;">
-                <i class="bi bi-clock-history me-1"></i>¿Es clase temporal / reposición?
-              </label>
-            </div>
-          </div>
+      if (editSwitchGrupal) {
+        editSwitchGrupal.addEventListener('change', function (e) {
+          editContIndividual.classList.toggle('d-none', e.target.checked);
+          editSelectIndividual.disabled = e.target.checked;
+          editSelectIndividual.required = !e.target.checked;
+          editContGrupal.classList.toggle('d-none', !e.target.checked);
+          editCheckboxesGrupal.forEach(chk => chk.disabled = !e.target.checked);
+        });
+      }
+      editCheckboxesGrupal.forEach(chk => chk.addEventListener('change', actualizarBadgesGrupalesEdit));
 
-        </div><!-- /modal-body -->
-        <div class="modal-footer border-top-0 pt-0">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal"
-                  style="border-radius:10px; font-size:14px; font-weight:500;">Cancelar</button>
-          <button type="submit" class="btn text-white"
-                  style="background:linear-gradient(135deg,#0d6efd,#0950c1); border:none;
-                         border-radius:10px; font-size:14px; font-weight:500;
-                         box-shadow:0 4px 12px rgba(13,110,253,0.3);">
-            <i class="bi bi-save me-1"></i> Guardar Cambios
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
+      buildHorario();
+    });
+  </script>
 </body>
+
 </html>
