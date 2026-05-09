@@ -6,9 +6,10 @@ import com.contrapunto.control_contrapunto.service.ServicioSalon;
 import com.contrapunto.control_contrapunto.service.ServicioClase;
 import com.contrapunto.control_contrapunto.service.ServicioProfesor;
 import com.contrapunto.control_contrapunto.service.ServicioAlumno;
-import com.contrapunto.control_contrapunto.repository.MateriaRepository;
 import com.contrapunto.control_contrapunto.repository.DiaSemanaRepository;
 import com.contrapunto.control_contrapunto.repository.InasistenciaRepository;
+import com.contrapunto.control_contrapunto.model.Materia;
+import com.contrapunto.control_contrapunto.service.ServicioMateria;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -29,7 +30,7 @@ public class ClasesSalonesController {
     private final ServicioClase servicioClase;
     private final ServicioProfesor servicioProfesor;
     private final ServicioAlumno servicioAlumno;
-    private final MateriaRepository materiaRepository;
+    private final ServicioMateria servicioMateria;
     private final DiaSemanaRepository diaSemanaRepository;
     private final InasistenciaRepository inasistenciaRepository;
     private final com.contrapunto.control_contrapunto.service.ServicioClaseCleanup servicioClaseCleanup;
@@ -62,12 +63,16 @@ public class ClasesSalonesController {
         // Bloque: Datos para gestión de Salones
         model.addAttribute("salones", servicioSalon.listarTodos());
         model.addAttribute("salonObj", new Salon());
+        
+        // Bloque: Datos para gestión de Materias
+        model.addAttribute("materias", servicioMateria.listarTodas());
+        model.addAttribute("materiaObj", new Materia());
 
         // Bloque: Diccionarios/Catálogos para el modal de agendar Clase
         // Estas listas alimentan los desplegables (selects) en los formularios de registro/edición
         model.addAttribute("listProfesores", servicioProfesor.listarTodos());
         model.addAttribute("listAlumnos", servicioAlumno.listarTodos());
-        model.addAttribute("listMaterias", materiaRepository.findAll());
+        model.addAttribute("listMaterias", servicioMateria.listarTodas());
         model.addAttribute("listDiasSemana", diaSemanaRepository.findAll());
         model.addAttribute("listSalones", servicioSalon.listarTodos());
         model.addAttribute("listInasistencias", inasistenciaRepository.findInasistenciasPendientes());
@@ -110,6 +115,30 @@ public class ClasesSalonesController {
         servicioSalon.eliminar(id);
         
         return "redirect:/clases-salones?tab=salones";
+    }
+
+    /**
+     * Persiste una nueva materia en la base de datos.
+     */
+    @PostMapping("/materias/guardar")
+    public String guardarMateria(@ModelAttribute("materiaObj") Materia materia, HttpSession session) {
+        if (session.getAttribute("adminLogueado") == null) {
+            return "redirect:/login";
+        }
+        servicioMateria.guardar(materia);
+        return "redirect:/clases-salones?tab=materias";
+    }
+
+    /**
+     * Elimina una materia por su identificador.
+     */
+    @GetMapping("/materias/eliminar/{id}")
+    public String eliminarMateria(@PathVariable("id") Long id, HttpSession session) {
+        if (session.getAttribute("adminLogueado") == null) {
+            return "redirect:/login";
+        }
+        servicioMateria.eliminar(id);
+        return "redirect:/clases-salones?tab=materias";
     }
 
     /**
