@@ -332,7 +332,7 @@
                                 <td th:text="${salon.nombre}">Aula A</td>
                                 <td style="text-align:center;">
                                     <button class="btn btn-sm btn-outline-secondary btn-icono" title="Editar"
-                                            th:onclick="abrirModalEditarSalon([[${salon.id}]], [[${salon.nombre}]])">
+                                            th:onclick="abrirModalEditarSalon([[${salon.id}]], '[[${salon.nombre}]]')">
                                         <i class="bi bi-pencil-fill"></i>
                                     </button>
                                     <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar"
@@ -478,7 +478,7 @@
                                 <td style="text-align:center;">
                                     <div class="d-flex justify-content-center gap-1">
                                         <button type="button" class="btn btn-sm btn-outline-primary btn-icono" title="Editar taller/clase grupal"
-                                                th:onclick="abrirModalEditarClase([[${c.idClase}]], [[${c.horaInicio}]], [[${c.horaFin}]], [[${c.diaSemana.idDiaSemana}]], [[${c.salon.id}]], [[${c.profesor.idProfesor}]], [[${c.materia.idMateria}]], '', 'true', [[${c.esReposicion == -1}]], [[${#strings.listJoin(c.alumnos.![idAlumno.toString()], ',')}]] )">
+                                                th:onclick="abrirModalEditarClase([[${c.idClase}]], '[[${c.horaInicio}]]', '[[${c.horaFin}]]', [[${c.diaSemana != null ? c.diaSemana.idDiaSemana : 'null'}]], [[${c.salon != null ? c.salon.id : 'null'}]], [[${c.profesor != null ? c.profesor.idProfesor : 'null'}]], [[${c.materia != null ? c.materia.idMateria : 'null'}]], '', 'true', [[${c.esReposicion == -1}]], '[[${c.alumnos != null ? #strings.listJoin(c.alumnos.![idAlumno.toString()], ',') : ''}]]' )">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar clase grupal"
@@ -667,7 +667,7 @@
               </label>
             </div>
           </div>
-
+          
           <!-- Switch: ¿Reposición? (Clase Temporal) -->
           <div class="mt-3 d-flex align-items-center gap-3 p-3" style="background:#fffcf5; border-radius:10px; border:1px solid #ffeedb;">
             <div class="form-check form-switch mb-0">
@@ -695,496 +695,6 @@
   </div>
 </div>
 
-<script>
-    /* ──────────────────────────────────────────────────────────
-       Lógica del selector de sub-vista
-    ────────────────────────────────────────────────────────── */
-
-
-    const SUBVISTAS = ['salones', 'clases', 'talleres'];
-
-    /**
-     * Cambia la sub-vista activa (Salones / Clases / Talleres).
-     * @param {string} vista  - identificador de la sub-vista
-     */
-    function cambiarSubvista(vista) {
-        // Desactivar todos los paneles y botones de tab
-        SUBVISTAS.forEach(v => {
-            document.getElementById('panel-' + v).classList.remove('active');
-            const btn = document.getElementById('btn-tab-' + v);
-            btn.classList.remove('active');
-            btn.setAttribute('aria-selected', 'false');
-        });
-
-        // Activar el panel y botón seleccionado
-        document.getElementById('panel-' + vista).classList.add('active');
-        const btnActivo = document.getElementById('btn-tab-' + vista);
-        btnActivo.classList.add('active');
-        btnActivo.setAttribute('aria-selected', 'true');
-
-        // Persistir sub-vista activa en la URL (parámetro ?tab=)
-        const url = new URL(window.location);
-        url.searchParams.set('tab', vista);
-        history.replaceState(null, '', url);
-    }
-
-
-    /* ─── Funciones para Modal de Salones ─── */
-    function abrirModalNuevoSalon() {
-        document.getElementById('modalSalonTitle').textContent = 'Nuevo Salón';
-        document.getElementById('formSalon').reset();
-        document.getElementById('salon-id').value = '';
-        new bootstrap.Modal(document.getElementById('modalSalon')).show();
-    }
-
-    function abrirModalEditarSalon(id, nombre) {
-        document.getElementById('modalSalonTitle').textContent = 'Editar Salón';
-        document.getElementById('salon-id').value = id;
-        document.getElementById('salon-nombre').value = nombre;
-        new bootstrap.Modal(document.getElementById('modalSalon')).show();
-    }
-
-    /* ─── Restaurar tab desde URL al cargar la página ─── */
-    (function() {
-        const params = new URLSearchParams(window.location.search);
-        const tab = params.get('tab');
-        if (tab && SUBVISTAS.includes(tab)) {
-            cambiarSubvista(tab);
-        }
-    })();
-
-    /* ──────────────────────────────────────────────────────
-       Cuadrícula de Horarios — Construcción Dinamica
-    ────────────────────────────────────────────────────── */
-    const BLOQUES_HORARIOS = [
-        { inicio: '07:00', fin: '08:00' },
-        { inicio: '08:00', fin: '09:00' },
-        { inicio: '09:00', fin: '10:00' },
-        { inicio: '10:00', fin: '11:00' },
-        { inicio: '11:00', fin: '12:00' },
-        { inicio: '12:00', fin: '13:00' },
-        { inicio: '13:00', fin: '14:00' },
-        { inicio: '14:00', fin: '15:00' },
-        { inicio: '15:00', fin: '16:00' },
-        { inicio: '16:00', fin: '17:00' },
-        { inicio: '17:00', fin: '18:00' },
-        { inicio: '18:00', fin: '19:00' },
-        { inicio: '19:00', fin: '20:00' },
-    ];
-
-    // Recoger los nombres de días desde el encabezado de la tabla generado por Thymeleaf
-    const diasHeaders = Array.from(document.querySelectorAll('#tabla-horarios thead th')).slice(1);
-
-    function buildHorario() {
-        const tbody = document.querySelector('#tabla-horarios tbody');
-        if (!tbody || diasHeaders.length === 0) return;
-
-        // Leer clases guardadas desde el DOM
-        const clasesGuardadas = [];
-        document.querySelectorAll('.clase-item').forEach(el => {
-            let primerAlumno = el.getAttribute('data-primer-alumno') || '';
-            let cantAlumnos = parseInt(el.getAttribute('data-cantidad-alumnos') || '0');
-            let textoAlumno = '';
-            if (cantAlumnos === 1) {
-                textoAlumno = primerAlumno;
-            } else if (cantAlumnos > 1) {
-                textoAlumno = primerAlumno + '...';
-            } else {
-                textoAlumno = 'Sin alumnos asignados';
-            }
-
-            clasesGuardadas.push({
-                id: el.getAttribute('data-id'),
-                horaInicio: el.getAttribute('data-hora-inicio'),
-                horaFin: el.getAttribute('data-hora-fin'),
-                dia: el.getAttribute('data-dia'),
-                idDia: el.getAttribute('data-id-dia'),
-                materia: el.getAttribute('data-materia'),
-                idMateria: el.getAttribute('data-id-materia'),
-                profesor: el.getAttribute('data-profesor'),
-                idProfesor: el.getAttribute('data-id-profesor'),
-                salon: el.getAttribute('data-salon'),
-                idSalon: el.getAttribute('data-id-salon'),
-                alumno: textoAlumno,
-                idAlumno: el.getAttribute('data-id-alumno'),
-                idsAlumnos: el.getAttribute('data-ids-alumnos') || '',
-                tipoClase: el.getAttribute('data-tipo-clase') === 'true',
-                esTemporal: el.getAttribute('data-es-temporal') === 'true'
-            });
-        });
-
-        tbody.innerHTML = '';
-        BLOQUES_HORARIOS.forEach(bloque => {
-            const tr = document.createElement('tr');
-            // Celda de hora
-            const tdHora = document.createElement('td');
-            tdHora.style.cssText = 'font-size:12px; font-weight:600; color:#6f42c1; white-space:nowrap;';
-            tdHora.textContent = bloque.inicio + ' – ' + bloque.fin;
-            tr.appendChild(tdHora);
-
-            // Una celda por día
-            diasHeaders.forEach(thDia => {
-                const nombreDia = thDia.textContent.trim();
-                const td = document.createElement('td');
-                td.style.cssText = 'text-align:center; vertical-align:top; padding:4px;';
-
-                // Buscar TODAS las clases que empiezan en este bloque y día (puede haber más de una)
-                const clasesEnCelda = clasesGuardadas.filter(c =>
-                    c.horaInicio && c.horaInicio.startsWith(bloque.inicio) &&
-                    c.dia.toLowerCase() === nombreDia.toLowerCase()
-                );
-
-                // Contenedor vertical para apilar tarjetas + botón
-                const wrapper = document.createElement('div');
-                wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:4px; min-width:130px;';
-
-                // Renderizar TODAS las clases encontradas en la celda
-                clasesEnCelda.forEach(clase => {
-                    const card = document.createElement('div');
-                    card.style.cssText = 'background:#f8f5ff; border:1px solid #dcd1f9; border-radius:8px; padding:6px 8px; font-size:11px; text-align:left; position:relative; width:100%; padding-right:46px;';
-                    card.innerHTML = `
-                        <div style="font-weight:700; color:#5a32a3; margin-bottom:2px;">
-                            ${clase.materia}
-                            ${clase.esTemporal ? '<i class="bi bi-clock-history ms-1 text-warning" title="Clase Temporal"></i>' : ''}
-                        </div>
-                        <div style="color:#6c757d; font-size:10px;"><i class="bi bi-person-badge me-1"></i>${clase.profesor}</div>
-                        <div style="color:#6c757d; font-size:10px;"><i class="bi bi-people me-1"></i>${clase.alumno}</div>
-                        <div style="color:#6c757d; font-size:10px;"><i class="bi bi-building me-1"></i>${clase.salon}</div>
-                        <div style="position:absolute; top:4px; right:4px; display:flex; flex-direction:column; gap:3px;">
-                            <button type="button"
-                               onclick="abrirModalEditarClase('${clase.id}','${clase.horaInicio}','${clase.horaFin}','${clase.idDia}','${clase.idSalon}','${clase.idProfesor}','${clase.idMateria}','${clase.idAlumno}','${clase.tipoClase}','${clase.esTemporal}','${clase.idsAlumnos}')"
-                               style="padding:2px 5px; font-size:10px; border-radius:4px; background:#0d6efd; color:#fff; border:none; cursor:pointer;"
-                               title="Editar clase">
-                                <i class="bi bi-pencil-fill"></i>
-                            </button>
-                            <a href="/clases/eliminar/${clase.id}"
-                               onclick="return confirm('\u00bfEliminar esta clase?');"
-                               style="display:inline-block; padding:2px 5px; font-size:10px; border-radius:4px; background:#dc3545; color:#fff; border:none; text-decoration:none;"
-                               title="Eliminar clase">
-                                <i class="bi bi-trash-fill"></i>
-                            </a>
-                        </div>
-                    `;
-                    wrapper.appendChild(card);
-                });
-
-                // Siempre mostrar el botón Registrar para agregar otra clase en ese bloque/día
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn btn-sm';
-                btn.style.cssText = 'font-size:11px; border-radius:8px; border:1.5px solid #6f42c1; color:#6f42c1; background:transparent; padding:3px 10px; transition:all 0.2s; width:100%;';
-                btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Registrar';
-                btn.addEventListener('mouseenter', () => { btn.style.background = '#6f42c1'; btn.style.color = '#fff'; });
-                btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; btn.style.color = '#6f42c1'; });
-                btn.onclick = () => abrirModalClase(bloque.inicio, bloque.fin, nombreDia, null);
-                wrapper.appendChild(btn);
-
-                td.appendChild(wrapper);
-                tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-        });
-    }
-
-    /* ──────────────────────────────────────────────────────
-       Configuración del switch Grupal y el Multi-Select de alumnos
-    ────────────────────────────────────────────────────── */
-    const switchGrupal = document.getElementById('modal-switch-grupal');
-    const contIndividual = document.getElementById('contenedor-alumno-individual');
-    const selectIndividual = document.getElementById('modal-clase-alumnos');
-    const contGrupal = document.getElementById('contenedor-alumno-grupal');
-    const checkboxesGrupal = document.querySelectorAll('.checkbox-alumno-grupal');
-    const badgesContainer = document.getElementById('badges-alumnos-grupales');
-    const searchAlumnosGrupales = document.getElementById('search-alumnos-grupales');
-
-    // Función para actualizar los badges cuando se seleccionan checkboxes
-    function actualizarBadgesGrupales() {
-        if (!badgesContainer) return;
-        badgesContainer.innerHTML = '';
-        let seleccionados = 0;
-        checkboxesGrupal.forEach(chk => {
-            if (chk.checked) {
-                seleccionados++;
-                const badge = document.createElement('span');
-                badge.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
-                badge.style.fontSize = '12px';
-                badge.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted cursor-pointer btn-remove-badge" style="cursor:pointer;" data-id="${chk.id}"></i>`;
-                badgesContainer.appendChild(badge);
-            }
-        });
-        
-        // Agregar eventos de eliminar a las cruces de los badges
-        document.querySelectorAll('.btn-remove-badge').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const chkId = this.getAttribute('data-id');
-                document.getElementById(chkId).checked = false;
-                actualizarBadgesGrupales();
-            });
-        });
-
-        const btnDropdown = document.getElementById('dropdownAlumnosGrupales');
-        if (!btnDropdown) return;
-        const btnSpan = btnDropdown.querySelector('span');
-        if (seleccionados > 0) {
-            btnSpan.textContent = `${seleccionados} alumno(s) seleccionado(s)`;
-            btnSpan.classList.add('fw-bold', 'text-primary');
-        } else {
-            btnSpan.textContent = 'Seleccionar estudiantes...';
-            btnSpan.classList.remove('fw-bold', 'text-primary');
-        }
-    }
-
-    // Evento de cambio en los checkboxes para actualizar los badges
-    checkboxesGrupal.forEach(chk => {
-        chk.addEventListener('change', actualizarBadgesGrupales);
-    });
-
-    // Lógica del buscador en la lista de checkboxes
-    if (searchAlumnosGrupales) {
-        searchAlumnosGrupales.addEventListener('input', function() {
-            const text = this.value.toLowerCase();
-            document.querySelectorAll('#lista-alumnos-grupales .custom-checkbox-item').forEach(item => {
-                const label = item.querySelector('label').textContent.toLowerCase();
-                if (label.includes(text)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    }
-
-    // Evento del Switch Grupal
-    if (switchGrupal) {
-        switchGrupal.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                // Activar modo grupal
-                contIndividual.classList.add('d-none');
-                selectIndividual.disabled = true;
-                selectIndividual.required = false;
-
-                contGrupal.classList.remove('d-none');
-                checkboxesGrupal.forEach(chk => chk.disabled = false);
-            } else {
-                // Activar modo individual
-                contGrupal.classList.add('d-none');
-                checkboxesGrupal.forEach(chk => chk.disabled = true);
-
-                contIndividual.classList.remove('d-none');
-                selectIndividual.disabled = false;
-                selectIndividual.required = true;
-            }
-        });
-    }
-
-    /* ──────────────────────────────────────────────────────
-       Modal de Clase — Apertura con contexto
-    ────────────────────────────────────────────────────── */
-
-    /**
-     * Abre el modal de registro de clase pre-llenado con el contexto
-     * de la celda seleccionada en la cuadrícula.
-     *
-     * @param {string} horaInicio  - Ej. '08:00'
-     * @param {string} horaFin     - Ej. '09:00'
-     * @param {string} nombreDia   - Nombre del día (ej. 'Lunes')
-     * @param {string|null} fecha  - ISO date opcional (null = hoy)
-     */
-    function abrirModalClase(horaInicio, horaFin, nombreDia, fecha) {
-        // Calcular la fecha si no fue provista
-        const hoy = new Date();
-        const diaNombres = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-        let fechaCalc = fecha;
-        if (!fechaCalc) {
-            // Encontrar la próxima ocurrencia del día de la semana
-            const idxTarget = diaNombres.indexOf(nombreDia);
-            const idxHoy = hoy.getDay();
-            let diff = idxTarget - idxHoy;
-            if (diff <= 0) diff += 7;
-            const proxFecha = new Date(hoy);
-            proxFecha.setDate(hoy.getDate() + diff);
-            fechaCalc = proxFecha.toISOString().split('T')[0];
-        }
-
-        // Pre-llenar campos informativos (deshabilitados)
-        document.getElementById('modal-clase-titulo').textContent =
-            horaInicio + ' – ' + horaFin + '  |  ' + nombreDia;
-        document.getElementById('modal-clase-hora-inicio').value = horaInicio;
-        document.getElementById('modal-clase-hora-fin').value    = horaFin;
-        document.getElementById('modal-clase-fecha').value       = fechaCalc;
-        // Sincronizar hidden inputs (los disabled no viajan en el POST)
-        document.getElementById('modal-clase-hora-inicio-hidden').value = horaInicio;
-        document.getElementById('modal-clase-hora-fin-hidden').value    = horaFin;
-        document.getElementById('modal-clase-fecha-hidden').value       = fechaCalc;
-
-        // Seleccionar y bloquear el día
-        const selectDia = document.getElementById('modal-clase-dia');
-        let idDiaEncontrado = '';
-        Array.from(selectDia.options).forEach(opt => {
-            if (opt.text.toLowerCase() === nombreDia.toLowerCase()) {
-                opt.selected = true;
-                idDiaEncontrado = opt.value;
-            }
-        });
-        document.getElementById('modal-clase-dia-hidden').value = idDiaEncontrado;
-
-        // Resetear los selectores editables y vaciar formClase explícitamente
-        document.getElementById('formClase').reset();
-        
-        document.getElementById('modal-switch-grupal').checked = false;
-        // Lanzamos el evento change para que se ejecute la lógica del modo individual
-        document.getElementById('modal-switch-grupal').dispatchEvent(new Event('change'));
-
-        document.getElementById('modal-switch-reposicion').checked = false;
-
-        // Limpiar búsqueda del grupal y actualizar badges
-        document.getElementById('search-alumnos-grupales').value = '';
-        document.getElementById('search-alumnos-grupales').dispatchEvent(new Event('input'));
-        actualizarBadgesGrupales();
-
-        new bootstrap.Modal(document.getElementById('modalClase')).show();
-    }
-
-    /* ──────────────────────────────────────────────────────
-       Configuración del switch Grupal y el Multi-Select en EDIT
-    ────────────────────────────────────────────────────── */
-    const editSwitchGrupal = document.getElementById('edit-switch-grupal');
-    const editContIndividual = document.getElementById('edit-contenedor-alumno-individual');
-    const editSelectIndividual = document.getElementById('edit-alumno');
-    const editContGrupal = document.getElementById('edit-contenedor-alumno-grupal');
-    const editCheckboxesGrupal = document.querySelectorAll('.edit-checkbox-alumno-grupal');
-    const editBadgesContainer = document.getElementById('edit-badges-alumnos-grupales');
-    const editSearchAlumnosGrupales = document.getElementById('edit-search-alumnos-grupales');
-
-    function actualizarBadgesGrupalesEdit() {
-        if (!editBadgesContainer) return;
-        editBadgesContainer.innerHTML = '';
-        let seleccionados = 0;
-        editCheckboxesGrupal.forEach(chk => {
-            if (chk.checked) {
-                seleccionados++;
-                const badge = document.createElement('span');
-                badge.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
-                badge.style.fontSize = '12px';
-                badge.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted cursor-pointer btn-remove-badge-edit" style="cursor:pointer;" data-id="${chk.id}"></i>`;
-                editBadgesContainer.appendChild(badge);
-            }
-        });
-        
-        document.querySelectorAll('.btn-remove-badge-edit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const chkId = this.getAttribute('data-id');
-                document.getElementById(chkId).checked = false;
-                actualizarBadgesGrupalesEdit();
-            });
-        });
-
-        const btnDropdown = document.getElementById('edit-dropdownAlumnosGrupales');
-        if (!btnDropdown) return;
-        const btnSpan = btnDropdown.querySelector('span');
-        if (seleccionados > 0) {
-            btnSpan.textContent = `${seleccionados} alumno(s) seleccionado(s)`;
-            btnSpan.classList.add('fw-bold', 'text-primary');
-        } else {
-            btnSpan.textContent = 'Seleccionar estudiantes...';
-            btnSpan.classList.remove('fw-bold', 'text-primary');
-        }
-    }
-
-    editCheckboxesGrupal.forEach(chk => {
-        chk.addEventListener('change', actualizarBadgesGrupalesEdit);
-    });
-
-    if (editSearchAlumnosGrupales) {
-        editSearchAlumnosGrupales.addEventListener('input', function() {
-            const text = this.value.toLowerCase();
-            document.querySelectorAll('#edit-lista-alumnos-grupales .custom-checkbox-item').forEach(item => {
-                const label = item.querySelector('label').textContent.toLowerCase();
-                item.style.display = label.includes(text) ? 'block' : 'none';
-            });
-        });
-    }
-
-    if (editSwitchGrupal) {
-        editSwitchGrupal.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                editContIndividual.classList.add('d-none');
-                editSelectIndividual.disabled = true;
-                editSelectIndividual.required = false;
-                editContGrupal.classList.remove('d-none');
-                editCheckboxesGrupal.forEach(chk => chk.disabled = false);
-            } else {
-                editContGrupal.classList.add('d-none');
-                editCheckboxesGrupal.forEach(chk => chk.disabled = true);
-                editContIndividual.classList.remove('d-none');
-                editSelectIndividual.disabled = false;
-                editSelectIndividual.required = true;
-            }
-        });
-    }
-
-    /* Switches dentro del modal */
-    document.addEventListener('DOMContentLoaded', function () {
-        // Construir cuadrícula al cargar
-        buildHorario();
-    });
-
-    /* ──────────────────────────────────────────────────────
-       Modal de Edición de Clase — Apertura con datos pre-llenados
-    ────────────────────────────────────────────────────── */
-    function abrirModalEditarClase(id, horaInicio, horaFin, idDia, idSalon, idProfesor, idMateria, idAlumno, tipoClase, esTemporal, idsAlumnos) {
-        // Pre-llenar campos ocultos de identificación
-        document.getElementById('edit-clase-id').value = id;
-
-        // Hora inicio/fin — quitar segundos si vienen como "HH:MM:SS"
-        const hi = horaInicio.length > 5 ? horaInicio.substring(0, 5) : horaInicio;
-        const hf = horaFin.length > 5 ? horaFin.substring(0, 5) : horaFin;
-        document.getElementById('edit-hora-inicio-display').value = hi;
-        document.getElementById('edit-hora-inicio-hidden').value  = hi;
-        document.getElementById('edit-hora-fin-display').value    = hf;
-        document.getElementById('edit-hora-fin-hidden').value     = hf;
-
-        // Selectores
-        document.getElementById('edit-salon').value   = idSalon   || '';
-        document.getElementById('edit-profesor').value = idProfesor || '';
-        document.getElementById('edit-materia').value = idMateria  || '';
-        
-        // Día (select bloqueado — solo informativo)
-        const selDia = document.getElementById('edit-dia');
-        Array.from(selDia.options).forEach(o => o.selected = o.value == idDia);
-        document.getElementById('edit-dia-hidden').value = idDia || '';
-
-        // Limpiar checkboxes grupales y búsqueda antes de pre-llenar
-        editCheckboxesGrupal.forEach(chk => chk.checked = false);
-        editSearchAlumnosGrupales.value = '';
-        editSearchAlumnosGrupales.dispatchEvent(new Event('input'));
-
-        // Lógica de alumnos según el tipo de clase
-        const esGrupal = (tipoClase === 'true');
-        document.getElementById('edit-switch-grupal').checked = esGrupal;
-        
-        if (esGrupal) {
-            // Pre-seleccionar checkboxes grupales
-            const idsArray = idsAlumnos ? idsAlumnos.split(',') : [];
-            idsArray.forEach(idA => {
-                const chk = document.getElementById('edit_chk_grupal_' + idA);
-                if (chk) chk.checked = true;
-            });
-            document.getElementById('edit-alumno').value = ''; // Limpiar individual
-        } else {
-            document.getElementById('edit-alumno').value = idAlumno || ''; // Llenar individual
-        }
-
-        // Forzar actualización de UI (containers y badges)
-        document.getElementById('edit-switch-grupal').dispatchEvent(new Event('change'));
-        actualizarBadgesGrupalesEdit();
-
-        // Switch reposición
-        document.getElementById('edit-switch-reposicion').checked = esTemporal === 'true';
-
-        new bootstrap.Modal(document.getElementById('modalEditarClase')).show();
-    }
-</script>
 
 <!-- ══════════════════════════════════════════════════════
      MODAL DE EDICIÓN DE CLASE
@@ -1322,5 +832,293 @@
   </div>
 </div>
 
+<script>
+    /* ──────────────────────────────────────────────────────────
+       Lógica del selector de sub-vista
+    ────────────────────────────────────────────────────────── */
+
+
+    const SUBVISTAS = ['salones', 'clases', 'talleres'];
+
+    /**
+     * Cambia la sub-vista activa (Salones / Clases / Talleres).
+     * @param {string} vista  - identificador de la sub-vista
+     */
+    function cambiarSubvista(vista) {
+        // Desactivar todos los paneles y botones de tab
+        SUBVISTAS.forEach(v => {
+            const p = document.getElementById('panel-' + v);
+            const b = document.getElementById('btn-tab-' + v);
+            if(p) p.classList.remove('active');
+            if(b) {
+                b.classList.remove('active');
+                b.setAttribute('aria-selected', 'false');
+            }
+        });
+
+        // Activar el panel y botón seleccionado
+        const panel = document.getElementById('panel-' + vista);
+        const btn = document.getElementById('btn-tab-' + vista);
+        if(panel) panel.classList.add('active');
+        if(btn) {
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+        }
+
+        // Persistir sub-vista activa en la URL
+        const url = new URL(window.location);
+        url.searchParams.set('tab', vista);
+        history.replaceState(null, '', url);
+    }
+
+
+    /* ─── Funciones para Modal de Salones ─── */
+    function abrirModalNuevoSalon() {
+        document.getElementById('modalSalonTitle').textContent = 'Nuevo Salón';
+        document.getElementById('formSalon').reset();
+        document.getElementById('salon-id').value = '';
+        new bootstrap.Modal(document.getElementById('modalSalon')).show();
+    }
+
+    function abrirModalEditarSalon(id, nombre) {
+        document.getElementById('modalSalonTitle').textContent = 'Editar Salón';
+        document.getElementById('salon-id').value = id;
+        document.getElementById('salon-nombre').value = nombre;
+        new bootstrap.Modal(document.getElementById('modalSalon')).show();
+    }
+
+    /* ──────────────────────────────────────────────────────
+       Cuadrícula de Horarios — Construcción Dinamica
+    ────────────────────────────────────────────────────── */
+    const BLOQUES_HORARIOS = [
+        { inicio: '07:00', fin: '08:00' },
+        { inicio: '08:00', fin: '09:00' },
+        { inicio: '09:00', fin: '10:00' },
+        { inicio: '10:00', fin: '11:00' },
+        { inicio: '11:00', fin: '12:00' },
+        { inicio: '12:00', fin: '13:00' },
+        { inicio: '13:00', fin: '14:00' },
+        { inicio: '14:00', fin: '15:00' },
+        { inicio: '15:00', fin: '16:00' },
+        { inicio: '16:00', fin: '17:00' },
+        { inicio: '17:00', fin: '18:00' },
+        { inicio: '18:00', fin: '19:00' },
+        { inicio: '19:00', fin: '20:00' },
+    ];
+
+    function buildHorario() {
+        const tbody = document.querySelector('#tabla-horarios tbody');
+        const diasHeaders = Array.from(document.querySelectorAll('#tabla-horarios thead th')).slice(1);
+        if (!tbody || diasHeaders.length === 0) return;
+
+        const clasesGuardadas = [];
+        document.querySelectorAll('.clase-item').forEach(el => {
+            let primerAlumno = el.getAttribute('data-primer-alumno') || '';
+            let cantAlumnos = parseInt(el.getAttribute('data-cantidad-alumnos') || '0');
+            let textoAlumno = (cantAlumnos === 1) ? primerAlumno : (cantAlumnos > 1 ? primerAlumno + '...' : 'Sin alumnos');
+
+            clasesGuardadas.push({
+                id: el.getAttribute('data-id'),
+                horaInicio: el.getAttribute('data-hora-inicio'),
+                horaFin: el.getAttribute('data-hora-fin'),
+                dia: el.getAttribute('data-dia'),
+                idDia: el.getAttribute('data-id-dia'),
+                materia: el.getAttribute('data-materia'),
+                idMateria: el.getAttribute('data-id-materia'),
+                profesor: el.getAttribute('data-profesor'),
+                idProfesor: el.getAttribute('data-id-profesor'),
+                salon: el.getAttribute('data-salon'),
+                idSalon: el.getAttribute('data-id-salon'),
+                alumno: textoAlumno,
+                idAlumno: el.getAttribute('data-id-alumno'),
+                idsAlumnos: el.getAttribute('data-ids-alumnos') || '',
+                tipoClase: el.getAttribute('data-tipo-clase') === 'true',
+                esTemporal: el.getAttribute('data-es-temporal') === 'true'
+            });
+        });
+
+        tbody.innerHTML = '';
+        BLOQUES_HORARIOS.forEach(bloque => {
+            const tr = document.createElement('tr');
+            const tdHora = document.createElement('td');
+            tdHora.style.cssText = 'font-size:12px; font-weight:600; color:#6f42c1; white-space:nowrap;';
+            tdHora.textContent = bloque.inicio + ' – ' + bloque.fin;
+            tr.appendChild(tdHora);
+
+            diasHeaders.forEach(thDia => {
+                const nombreDia = thDia.textContent.trim();
+                const td = document.createElement('td');
+                td.style.cssText = 'text-align:center; vertical-align:top; padding:4px;';
+
+                const clasesEnCelda = clasesGuardadas.filter(c =>
+                    c.horaInicio && c.horaInicio.startsWith(bloque.inicio) &&
+                    c.dia.toLowerCase() === nombreDia.toLowerCase()
+                );
+
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:4px; min-width:130px;';
+
+                clasesEnCelda.forEach(clase => {
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background:#f8f5ff; border:1px solid #dcd1f9; border-radius:8px; padding:6px 8px; font-size:11px; text-align:left; position:relative; width:100%; padding-right:46px;';
+                    card.innerHTML = `
+                        <div style="font-weight:700; color:#5a32a3; margin-bottom:2px;">
+                            ${clase.materia} ${clase.esTemporal ? '<i class="bi bi-clock-history ms-1 text-warning"></i>' : ''}
+                        </div>
+                        <div style="color:#6c757d; font-size:10px;"><i class="bi bi-person-badge me-1"></i>${clase.profesor}</div>
+                        <div style="color:#6c757d; font-size:10px;"><i class="bi bi-people me-1"></i>${clase.alumno}</div>
+                        <div style="color:#6c757d; font-size:10px;"><i class="bi bi-building me-1"></i>${clase.salon}</div>
+                        <div style="position:absolute; top:4px; right:4px; display:flex; flex-direction:column; gap:3px;">
+                            <button type="button" onclick="abrirModalEditarClase('${clase.id}','${clase.horaInicio}','${clase.horaFin}','${clase.idDia}','${clase.idSalon}','${clase.idProfesor}','${clase.idMateria}','${clase.idAlumno}','${clase.tipoClase}','${clase.esTemporal}','${clase.idsAlumnos}')"
+                                    style="padding:2px 5px; font-size:10px; border-radius:4px; background:#0d6efd; color:#fff; border:none; cursor:pointer;"><i class="bi bi-pencil-fill"></i></button>
+                            <a href="/clases/eliminar/${clase.id}" onclick="return confirm('\u00bfEliminar?');"
+                               style="padding:2px 5px; font-size:10px; border-radius:4px; background:#dc3545; color:#fff; text-decoration:none;"><i class="bi bi-trash-fill"></i></a>
+                        </div>
+                    `;
+                    wrapper.appendChild(card);
+                });
+
+                const btn = document.createElement('button');
+                btn.type = 'button'; btn.className = 'btn btn-sm';
+                btn.style.cssText = 'font-size:11px; border-radius:8px; border:1.5px solid #6f42c1; color:#6f42c1; background:transparent; padding:3px 10px; width:100%;';
+                btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Registrar';
+                btn.onclick = () => abrirModalClase(bloque.inicio, bloque.fin, nombreDia, null);
+                wrapper.appendChild(btn);
+
+                td.appendChild(wrapper);
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Variables globales
+    let switchGrupal, contIndividual, selectIndividual, contGrupal, checkboxesGrupal, badgesContainer, searchAlumnosGrupales;
+    let editSwitchGrupal, editContIndividual, editSelectIndividual, editContGrupal, editCheckboxesGrupal, editBadgesContainer, editSearchAlumnosGrupales;
+
+    function actualizarBadgesGrupales() {
+        if (!badgesContainer) return;
+        badgesContainer.innerHTML = '';
+        let sel = 0;
+        checkboxesGrupal.forEach(chk => {
+            if (chk.checked) {
+                sel++;
+                const b = document.createElement('span');
+                b.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
+                b.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted btn-remove-badge" style="cursor:pointer;" data-id="${chk.id}"></i>`;
+                badgesContainer.appendChild(b);
+            }
+        });
+        document.querySelectorAll('.btn-remove-badge').forEach(b => b.onclick = function() {
+            document.getElementById(this.getAttribute('data-id')).checked = false;
+            actualizarBadgesGrupales();
+        });
+        const span = document.querySelector('#dropdownAlumnosGrupales span');
+        if(span) span.textContent = sel > 0 ? `${sel} alumno(s)` : 'Seleccionar estudiantes...';
+    }
+
+    function actualizarBadgesGrupalesEdit() {
+        if (!editBadgesContainer) return;
+        editBadgesContainer.innerHTML = '';
+        let sel = 0;
+        editCheckboxesGrupal.forEach(chk => {
+            if (chk.checked) {
+                sel++;
+                const b = document.createElement('span');
+                b.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
+                b.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted btn-remove-badge-edit" style="cursor:pointer;" data-id="${chk.id}"></i>`;
+                editBadgesContainer.appendChild(b);
+            }
+        });
+        document.querySelectorAll('.btn-remove-badge-edit').forEach(b => b.onclick = function() {
+            document.getElementById(this.getAttribute('data-id')).checked = false;
+            actualizarBadgesGrupalesEdit();
+        });
+        const span = document.querySelector('#edit-dropdownAlumnosGrupales span');
+        if(span) span.textContent = sel > 0 ? `${sel} alumno(s)` : 'Seleccionar estudiantes...';
+    }
+
+    function abrirModalClase(hI, hF, nD, f) {
+        document.getElementById('modal-clase-titulo').textContent = hI + ' – ' + hF + ' | ' + nD;
+        document.getElementById('modal-clase-hora-inicio-hidden').value = hI;
+        document.getElementById('modal-clase-hora-fin-hidden').value = hF;
+        document.getElementById('formClase').reset();
+        document.getElementById('modal-switch-grupal').checked = false;
+        document.getElementById('modal-switch-grupal').dispatchEvent(new Event('change'));
+        new bootstrap.Modal(document.getElementById('modalClase')).show();
+    }
+
+    function abrirModalEditarClase(id, hI, hF, idD, idS, idP, idM, idA, tipo, temp, idsA) {
+        document.getElementById('edit-clase-id').value = id;
+        document.getElementById('edit-hora-inicio-display').value = hI.substring(0,5);
+        document.getElementById('edit-hora-inicio-hidden').value = hI.substring(0,5);
+        document.getElementById('edit-hora-fin-display').value = hF.substring(0,5);
+        document.getElementById('edit-hora-fin-hidden').value = hF.substring(0,5);
+        document.getElementById('edit-salon').value = idS || '';
+        document.getElementById('edit-profesor').value = idP || '';
+        document.getElementById('edit-materia').value = idM || '';
+        document.getElementById('edit-dia-hidden').value = idD || '';
+        
+        editCheckboxesGrupal.forEach(chk => chk.checked = false);
+        const esG = (tipo === true || tipo === 'true');
+        document.getElementById('edit-switch-grupal').checked = esG;
+        if (esG) {
+            const ids = (idsA && idsA !== 'null' && idsA !== '') ? idsA.split(',') : [];
+            ids.forEach(i => {
+                const chk = document.getElementById('edit_chk_grupal_' + i.trim());
+                if (chk) chk.checked = true;
+            });
+            document.getElementById('edit-alumno').value = '';
+        } else {
+            document.getElementById('edit-alumno').value = (idA === 'null' || !idA) ? '' : idA;
+        }
+        document.getElementById('edit-switch-grupal').dispatchEvent(new Event('change'));
+        actualizarBadgesGrupalesEdit();
+        document.getElementById('edit-switch-reposicion').checked = (temp === true || temp === 'true');
+        new bootstrap.Modal(document.getElementById('modalEditarClase')).show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        switchGrupal = document.getElementById('modal-switch-grupal');
+        contIndividual = document.getElementById('contenedor-alumno-individual');
+        selectIndividual = document.getElementById('modal-clase-alumnos');
+        contGrupal = document.getElementById('contenedor-alumno-grupal');
+        checkboxesGrupal = document.querySelectorAll('.checkbox-alumno-grupal');
+        badgesContainer = document.getElementById('badges-alumnos-grupales');
+        searchAlumnosGrupales = document.getElementById('search-alumnos-grupales');
+
+        editSwitchGrupal = document.getElementById('edit-switch-grupal');
+        editContIndividual = document.getElementById('edit-contenedor-alumno-individual');
+        editSelectIndividual = document.getElementById('edit-alumno');
+        editContGrupal = document.getElementById('edit-contenedor-alumno-grupal');
+        editCheckboxesGrupal = document.querySelectorAll('.edit-checkbox-alumno-grupal');
+        editBadgesContainer = document.getElementById('edit-badges-alumnos-grupales');
+        editSearchAlumnosGrupales = document.getElementById('edit-search-alumnos-grupales');
+
+        if (switchGrupal) {
+            switchGrupal.addEventListener('change', function(e) {
+                contIndividual.classList.toggle('d-none', e.target.checked);
+                selectIndividual.disabled = e.target.checked;
+                selectIndividual.required = !e.target.checked;
+                contGrupal.classList.toggle('d-none', !e.target.checked);
+                checkboxesGrupal.forEach(chk => chk.disabled = !e.target.checked);
+            });
+        }
+        checkboxesGrupal.forEach(chk => chk.addEventListener('change', actualizarBadgesGrupales));
+
+        if (editSwitchGrupal) {
+            editSwitchGrupal.addEventListener('change', function(e) {
+                editContIndividual.classList.toggle('d-none', e.target.checked);
+                editSelectIndividual.disabled = e.target.checked;
+                editSelectIndividual.required = !e.target.checked;
+                editContGrupal.classList.toggle('d-none', !e.target.checked);
+                editCheckboxesGrupal.forEach(chk => chk.disabled = !e.target.checked);
+            });
+        }
+        editCheckboxesGrupal.forEach(chk => chk.addEventListener('change', actualizarBadgesGrupalesEdit));
+
+        buildHorario();
+    });
+</script>
 </body>
 </html>
