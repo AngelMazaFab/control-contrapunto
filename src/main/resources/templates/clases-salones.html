@@ -364,6 +364,7 @@
                      th:data-id-salon="${c.salon != null ? c.salon.id : ''}"
                      th:data-primer-alumno="${c.alumnos != null and !c.alumnos.isEmpty() ? c.alumnos[0].nombreAlumno : ''}"
                      th:data-id-alumno="${c.alumnos != null and !c.alumnos.isEmpty() ? c.alumnos[0].idAlumno : ''}"
+                     th:data-ids-alumnos="${c.alumnos != null ? #strings.listJoin(c.alumnos.![idAlumno.toString()], ',') : ''}"
                      th:data-cantidad-alumnos="${c.alumnos != null ? c.alumnos.size() : 0}"
                      th:data-tipo-clase="${c.tipoClase != null and c.tipoClase}"
                      th:data-es-temporal="${c.esReposicion != null and c.esReposicion == -1}"></div>
@@ -445,11 +446,17 @@
                                     <span th:if="${c.alumnos == null or c.alumnos.isEmpty()}" class="text-muted" style="font-size:12px;">Sin inscritos</span>
                                 </td>
                                 <td style="text-align:center;">
-                                    <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar clase grupal"
-                                       th:href="@{/clases/eliminar/{id}(id=${c.idClase})}"
-                                       onclick="return confirm('¿Estás seguro de eliminar este taller/clase grupal?');">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </a>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-primary btn-icono" title="Editar taller/clase grupal"
+                                                th:onclick="abrirModalEditarClase([[${c.idClase}]], [[${c.horaInicio}]], [[${c.horaFin}]], [[${c.diaSemana.idDiaSemana}]], [[${c.salon.id}]], [[${c.profesor.idProfesor}]], [[${c.materia.idMateria}]], '', 'true', [[${c.esReposicion == -1}]], [[${#strings.listJoin(c.alumnos.![idAlumno.toString()], ',')}]] )">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <a class="btn btn-sm btn-outline-danger btn-icono" title="Eliminar clase grupal"
+                                           th:href="@{/clases/eliminar/{id}(id=${c.idClase})}"
+                                           onclick="return confirm('¿Estás seguro de eliminar este taller/clase grupal?');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             <tr th:if="${listClases.?[tipoClase == true].isEmpty()}">
@@ -770,6 +777,7 @@
                 idSalon: el.getAttribute('data-id-salon'),
                 alumno: textoAlumno,
                 idAlumno: el.getAttribute('data-id-alumno'),
+                idsAlumnos: el.getAttribute('data-ids-alumnos') || '',
                 tipoClase: el.getAttribute('data-tipo-clase') === 'true',
                 esTemporal: el.getAttribute('data-es-temporal') === 'true'
             });
@@ -814,7 +822,7 @@
                         <div style="color:#6c757d; font-size:10px;"><i class="bi bi-building me-1"></i>${clase.salon}</div>
                         <div style="position:absolute; top:4px; right:4px; display:flex; flex-direction:column; gap:3px;">
                             <button type="button"
-                               onclick="abrirModalEditarClase('${clase.id}','${clase.horaInicio}','${clase.horaFin}','${clase.idDia}','${clase.idSalon}','${clase.idProfesor}','${clase.idMateria}','${clase.idAlumno}','${clase.tipoClase}','${clase.esTemporal}')"
+                               onclick="abrirModalEditarClase('${clase.id}','${clase.horaInicio}','${clase.horaFin}','${clase.idDia}','${clase.idSalon}','${clase.idProfesor}','${clase.idMateria}','${clase.idAlumno}','${clase.tipoClase}','${clase.esTemporal}','${clase.idsAlumnos}')"
                                style="padding:2px 5px; font-size:10px; border-radius:4px; background:#0d6efd; color:#fff; border:none; cursor:pointer;"
                                title="Editar clase">
                                 <i class="bi bi-pencil-fill"></i>
@@ -1007,18 +1015,94 @@
         new bootstrap.Modal(document.getElementById('modalClase')).show();
     }
 
+    /* ──────────────────────────────────────────────────────
+       Configuración del switch Grupal y el Multi-Select en EDIT
+    ────────────────────────────────────────────────────── */
+    const editSwitchGrupal = document.getElementById('edit-switch-grupal');
+    const editContIndividual = document.getElementById('edit-contenedor-alumno-individual');
+    const editSelectIndividual = document.getElementById('edit-alumno');
+    const editContGrupal = document.getElementById('edit-contenedor-alumno-grupal');
+    const editCheckboxesGrupal = document.querySelectorAll('.edit-checkbox-alumno-grupal');
+    const editBadgesContainer = document.getElementById('edit-badges-alumnos-grupales');
+    const editSearchAlumnosGrupales = document.getElementById('edit-search-alumnos-grupales');
+
+    function actualizarBadgesGrupalesEdit() {
+        if (!editBadgesContainer) return;
+        editBadgesContainer.innerHTML = '';
+        let seleccionados = 0;
+        editCheckboxesGrupal.forEach(chk => {
+            if (chk.checked) {
+                seleccionados++;
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-light text-dark border d-flex align-items-center gap-1';
+                badge.style.fontSize = '12px';
+                badge.innerHTML = `${chk.getAttribute('data-nombre')} <i class="bi bi-x-circle text-muted cursor-pointer btn-remove-badge-edit" style="cursor:pointer;" data-id="${chk.id}"></i>`;
+                editBadgesContainer.appendChild(badge);
+            }
+        });
+        
+        document.querySelectorAll('.btn-remove-badge-edit').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const chkId = this.getAttribute('data-id');
+                document.getElementById(chkId).checked = false;
+                actualizarBadgesGrupalesEdit();
+            });
+        });
+
+        const btnDropdown = document.getElementById('edit-dropdownAlumnosGrupales');
+        if (!btnDropdown) return;
+        const btnSpan = btnDropdown.querySelector('span');
+        if (seleccionados > 0) {
+            btnSpan.textContent = `${seleccionados} alumno(s) seleccionado(s)`;
+            btnSpan.classList.add('fw-bold', 'text-primary');
+        } else {
+            btnSpan.textContent = 'Seleccionar estudiantes...';
+            btnSpan.classList.remove('fw-bold', 'text-primary');
+        }
+    }
+
+    editCheckboxesGrupal.forEach(chk => {
+        chk.addEventListener('change', actualizarBadgesGrupalesEdit);
+    });
+
+    if (editSearchAlumnosGrupales) {
+        editSearchAlumnosGrupales.addEventListener('input', function() {
+            const text = this.value.toLowerCase();
+            document.querySelectorAll('#edit-lista-alumnos-grupales .custom-checkbox-item').forEach(item => {
+                const label = item.querySelector('label').textContent.toLowerCase();
+                item.style.display = label.includes(text) ? 'block' : 'none';
+            });
+        });
+    }
+
+    if (editSwitchGrupal) {
+        editSwitchGrupal.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                editContIndividual.classList.add('d-none');
+                editSelectIndividual.disabled = true;
+                editSelectIndividual.required = false;
+                editContGrupal.classList.remove('d-none');
+                editCheckboxesGrupal.forEach(chk => chk.disabled = false);
+            } else {
+                editContGrupal.classList.add('d-none');
+                editCheckboxesGrupal.forEach(chk => chk.disabled = true);
+                editContIndividual.classList.remove('d-none');
+                editSelectIndividual.disabled = false;
+                editSelectIndividual.required = true;
+            }
+        });
+    }
+
     /* Switches dentro del modal */
     document.addEventListener('DOMContentLoaded', function () {
         // Construir cuadrícula al cargar
         buildHorario();
-
-        // El listener de modal-switch-grupal ya está definido globalmente arriba
     });
 
     /* ──────────────────────────────────────────────────────
        Modal de Edición de Clase — Apertura con datos pre-llenados
     ────────────────────────────────────────────────────── */
-    function abrirModalEditarClase(id, horaInicio, horaFin, idDia, idSalon, idProfesor, idMateria, idAlumno, tipoClase, esTemporal) {
+    function abrirModalEditarClase(id, horaInicio, horaFin, idDia, idSalon, idProfesor, idMateria, idAlumno, tipoClase, esTemporal, idsAlumnos) {
         // Pre-llenar campos ocultos de identificación
         document.getElementById('edit-clase-id').value = id;
 
@@ -1034,15 +1118,38 @@
         document.getElementById('edit-salon').value   = idSalon   || '';
         document.getElementById('edit-profesor').value = idProfesor || '';
         document.getElementById('edit-materia').value = idMateria  || '';
-        document.getElementById('edit-alumno').value  = idAlumno   || '';
-
+        
         // Día (select bloqueado — solo informativo)
         const selDia = document.getElementById('edit-dia');
         Array.from(selDia.options).forEach(o => o.selected = o.value == idDia);
         document.getElementById('edit-dia-hidden').value = idDia || '';
 
-        // Switches
-        document.getElementById('edit-switch-grupal').checked     = tipoClase === 'true';
+        // Limpiar checkboxes grupales y búsqueda antes de pre-llenar
+        editCheckboxesGrupal.forEach(chk => chk.checked = false);
+        editSearchAlumnosGrupales.value = '';
+        editSearchAlumnosGrupales.dispatchEvent(new Event('input'));
+
+        // Lógica de alumnos según el tipo de clase
+        const esGrupal = (tipoClase === 'true');
+        document.getElementById('edit-switch-grupal').checked = esGrupal;
+        
+        if (esGrupal) {
+            // Pre-seleccionar checkboxes grupales
+            const idsArray = idsAlumnos ? idsAlumnos.split(',') : [];
+            idsArray.forEach(idA => {
+                const chk = document.getElementById('edit_chk_grupal_' + idA);
+                if (chk) chk.checked = true;
+            });
+            document.getElementById('edit-alumno').value = ''; // Limpiar individual
+        } else {
+            document.getElementById('edit-alumno').value = idAlumno || ''; // Llenar individual
+        }
+
+        // Forzar actualización de UI (containers y badges)
+        document.getElementById('edit-switch-grupal').dispatchEvent(new Event('change'));
+        actualizarBadgesGrupalesEdit();
+
+        // Switch reposición
         document.getElementById('edit-switch-reposicion').checked = esTemporal === 'true';
 
         new bootstrap.Modal(document.getElementById('modalEditarClase')).show();
@@ -1115,12 +1222,37 @@
                 <option th:each="m : ${listMaterias}" th:value="${m.idMateria}" th:text="${m.nombreMateria}"></option>
               </select>
             </div>
-            <div class="col-md-6">
-              <label for="edit-alumno" class="form-label fw-semibold" style="font-size:13px;">Alumno</label>
+            <!-- Selector de Alumno (Individual) -->
+            <div class="col-md-12" id="edit-contenedor-alumno-individual">
+              <label for="edit-alumno" class="form-label fw-semibold" style="font-size:13px;">Alumno (Para clases individuales)</label>
               <select class="form-select" id="edit-alumno" name="alumnos">
                 <option value="">Sin alumno asignado</option>
                 <option th:each="a : ${listAlumnos}" th:value="${a.idAlumno}" th:text="${a.nombreAlumno}"></option>
               </select>
+            </div>
+
+            <!-- Selector de Alumnos (Grupal) -->
+            <div class="col-md-12 d-none" id="edit-contenedor-alumno-grupal">
+              <label class="form-label fw-semibold" style="font-size:13px;">Alumnos Inscritos (Clase Grupal)</label>
+              <div class="dropdown">
+                  <button class="form-select text-start d-flex justify-content-between align-items-center" type="button" id="edit-dropdownAlumnosGrupales" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="background-color: #fff; color: #495057;">
+                      <span>Seleccionar estudiantes...</span>
+                      <i class="bi bi-chevron-down" style="font-size:12px;"></i>
+                  </button>
+                  <div class="dropdown-menu w-100 p-3 shadow" aria-labelledby="edit-dropdownAlumnosGrupales" style="border-radius: 12px; border: 1px solid #e9ecef;">
+                      <div class="input-group input-group-sm mb-2">
+                          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                          <input type="text" class="form-control border-start-0 ps-0" id="edit-search-alumnos-grupales" placeholder="Buscar alumno..." style="box-shadow: none;">
+                      </div>
+                      <div id="edit-lista-alumnos-grupales" style="max-height: 200px; overflow-y: auto;">
+                          <div class="form-check custom-checkbox-item py-1 ms-1" th:each="a : ${listAlumnos}" style="border-bottom: 1px solid #f8f9fa;">
+                              <input class="form-check-input edit-checkbox-alumno-grupal" type="checkbox" name="alumnos" th:value="${a.idAlumno}" th:id="'edit_chk_grupal_' + ${a.idAlumno}" th:data-nombre="${a.nombreAlumno}">
+                              <label class="form-check-label w-100" th:for="'edit_chk_grupal_' + ${a.idAlumno}" th:text="${a.nombreAlumno}" style="font-size: 13.5px; cursor: pointer;"></label>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <div id="edit-badges-alumnos-grupales" class="mt-2 d-flex flex-wrap gap-2"></div>
             </div>
           </div>
 
